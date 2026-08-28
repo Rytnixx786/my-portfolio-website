@@ -127,17 +127,17 @@ function ProjectCard({
           {isFeatured && (
             <div className="lg:col-span-2 hidden lg:block border border-white/5 bg-[#020704]/40 rounded-2xl p-4 relative h-64 overflow-hidden select-none cursor-pointer" onClick={() => onOpenDrawer(project)}>
               <span className="absolute top-3 left-4 text-[9px] font-mono text-slate-500 uppercase tracking-widest">
-                Agent flow_graph
+                {project.slug === "cinch" ? "async_serving_pipeline" : "system flow_graph"}
               </span>
               
               <div className="absolute inset-0 flex flex-col justify-center items-center gap-3 p-6 mt-2">
                 <div className="flex items-center gap-2 w-full justify-between">
                   <div className="text-[10px] font-mono bg-[#10b981]/10 border border-[#10b981]/25 text-[#34d399] px-2 py-1 rounded">
-                    User Prompt
+                    {project.slug === "cinch" ? "Client Ingress :8081" : "User Prompt"}
                   </div>
                   <ArrowRight size={12} className="text-slate-600" />
                   <div className="text-[10px] font-mono bg-white/5 border border-white/10 text-white px-2 py-1 rounded">
-                    Planner
+                    {project.slug === "cinch" ? "Circuit Breaker (45ms)" : "Planner"}
                   </div>
                 </div>
 
@@ -145,11 +145,11 @@ function ProjectCard({
 
                 <div className="flex items-center gap-2 w-full justify-between">
                   <div className="text-[10px] font-mono bg-[#10b981]/10 border border-[#10b981]/25 text-[#34d399] px-2 py-1 rounded">
-                    Parallel Scrapers
+                    {project.slug === "cinch" ? "Semantic Cache (4.12ms)" : "Parallel Scrapers"}
                   </div>
                   <ArrowRight size={12} className="text-[#10b981]" />
                   <div className="text-[10px] font-mono bg-[#10b981]/20 border border-[#10b981]/40 text-[#6ee7b7] px-2.5 py-1 rounded font-bold">
-                    Refusal Evaluator
+                    {project.slug === "cinch" ? "vLLM Marlin INT4" : "Refusal Evaluator"}
                   </div>
                 </div>
 
@@ -157,11 +157,11 @@ function ProjectCard({
 
                 <div className="flex items-center gap-2 w-full justify-between">
                   <div className="text-[10px] font-mono bg-white/5 border border-white/10 text-white px-2 py-1 rounded">
-                    Grounded Dossier
+                    {project.slug === "cinch" ? "FinOps Ledger / HPA" : "Grounded Dossier"}
                   </div>
                   <ArrowRight size={12} className="text-slate-600" />
                   <div className="text-[10px] font-mono bg-[#10b981]/10 border border-[#10b981]/25 text-[#34d399] px-2 py-1 rounded">
-                    Output Stream
+                    {project.slug === "cinch" ? "331 tok/s Stream" : "Output Stream"}
                   </div>
                 </div>
               </div>

@@ -25,9 +25,10 @@ interface TerminalLine {
 }
 
 const COMMAND_SUGGESTIONS = [
+  { cmd: "query-cinch", desc: "Execute 14-stage Cinch LLM serving gateway telemetry" },
   { cmd: "query-rag", desc: "Audit RAG evidence verification pipeline" },
   { cmd: "query-agent", desc: "Execute stateful 8-node LangGraph agent flow" },
-  { cmd: "metrics", desc: "Print production reliability & TTFB metrics" },
+  { cmd: "metrics", desc: "Print production reliability & serving metrics" },
   { cmd: "stack", desc: "Render full infrastructure tech stack" },
   { cmd: "about", desc: "Print engineer profile details" },
   { cmd: "clear", desc: "Clear console history buffer" },
@@ -92,6 +93,7 @@ export function TerminalDemo() {
     if (trimmed === "help") {
       response = [
         { text: "Available Commands:", type: "system" },
+        { text: "  query-cinch   - Execute 14-stage Cinch LLM serving gateway telemetry", type: "system" },
         { text: "  query-rag     - Audit RAG evidence verification pipeline", type: "system" },
         { text: "  query-agent   - Execute simulated stateful 8-node LangGraph workflow", type: "system" },
         { text: "  metrics       - Print production system reliability metrics", type: "system" },
@@ -104,6 +106,19 @@ export function TerminalDemo() {
       setIsTyping(false);
       setActiveNodeStep(0);
       return;
+    } else if (trimmed === "query-cinch" || trimmed === "query cinch" || trimmed === "query-serving") {
+      setActiveNodeStep(2);
+      response = [
+        { text: "⟳ Intercepting ingress request on port 8081 (Traefik -> Cinch Gateway)...", type: "system" },
+        { text: "✓ Circuit Breaker check: State CLOSED (0 failures, threshold: 3)", type: "success" },
+        { text: "✓ FinOps Gate: Tenant 'team_enterprise' token budget $50.00 / remaining: $48.24", type: "success" },
+        { text: "✓ Ingress Security: Heuristic jailbreak scan clean (<0.8ms), PII masked", type: "success" },
+        { text: "⟳ Querying CPU Semantic Vector Cache (TF-IDF Cosine >= 0.92)...", type: "system" },
+        { text: "✓ Semantic Vector Cache HIT (cosine: 0.96) -> 4.12ms response returned (0W GPU power)", type: "success" },
+        { text: "▶ Executing fallback test: Cold prompt to vLLM AWQ Marlin INT4 engine...", type: "system" },
+        { text: "✓ vLLM Engine: Qwen2.5-7B-Instruct-AWQ (4.2 GiB VRAM) -> 331.0 tok/s (10.86x speedup)", type: "success" },
+        { text: "→ Process completed. 195/195 tests verified. Kubernetes HPA: 2/6 replicas healthy.", type: "output" },
+      ];
     } else if (trimmed === "query-rag" || trimmed === "query rag") {
       setActiveNodeStep(2);
       response = [
@@ -133,18 +148,21 @@ export function TerminalDemo() {
     } else if (trimmed === "metrics") {
       response = [
         { text: "SYSTEM OPERATIONAL METRICS:", type: "system" },
+        { text: "  - Serving Throughput      : 331.00 tok/s (10.86x speedup over FP16 baseline)", type: "success" },
+        { text: "  - Semantic Cache Latency  : 4.12ms (in-process cosine lookup, 0W GPU)", type: "success" },
+        { text: "  - Circuit Breaker Fast-Fail: 45.56ms on GPU panics (HTTP 503)", type: "success" },
         { text: "  - Groundedness Score      : 95.0% (Factual QA target: >=92%)", type: "success" },
-        { text: "  - Integration Tests       : 122 passed (0 failed, coverage: 94%)", type: "success" },
+        { text: "  - Integration Tests       : 195 passed (0 failed, CI verified)", type: "success" },
         { text: "  - Streamed Response latency: 8.68ms (p95 TTFB)", type: "success" },
-        { text: "  - API Load Capacity       : 8.05 req/s (Nexus Researcher sustained)", type: "success" },
       ];
     } else if (trimmed === "stack") {
       response = [
         { text: "TECHNICAL INFRASTRUCTURE ARCHITECTURE:", type: "system" },
+        { text: "  LLM Serving  :: Cinch Gateway, vLLM, AWQ Marlin INT4, ONNX Semantic Cache, Kubernetes (k3d)", type: "success" },
         { text: "  AI Systems   :: LangGraph, LangChain, RAG, Evals (Promptfoo), LangSmith", type: "success" },
         { text: "  MLOps        :: ARES Eval System, DVC, GitHub Actions, Prometheus, Regression Gates", type: "success" },
-        { text: "  Models       :: OpenAI, Mistral, Ollama, Refusal Calibration", type: "success" },
-        { text: "  Backend      :: FastAPI, Node.js, Express, PostgreSQL, Redis, Supabase, Docker", type: "success" },
+        { text: "  Models       :: Qwen2.5-7B, OpenAI, Mistral, Ollama, Refusal Calibration", type: "success" },
+        { text: "  Backend      :: Python, FastAPI, Node.js, Express, PostgreSQL, Redis, Supabase, Docker", type: "success" },
         { text: "  Mobile       :: React Native, Expo Router, SQLite Offline-First, Background Sync", type: "success" },
         { text: "  Frontend     :: Next.js, React, TypeScript, Tailwind CSS", type: "success" },
       ];
@@ -426,6 +444,15 @@ export function TerminalDemo() {
         {/* Shortcuts / Quick queries */}
         <div className="mt-6 flex flex-wrap gap-2.5 justify-center">
           <span className="text-xs text-slate-500 font-mono self-center mr-1.5 uppercase select-none">Quick queries:</span>
+          <button
+            onClick={(e) => handleShortcutClick(e, "query-cinch")}
+            disabled={isTyping}
+            className="px-4 py-1.5 bg-[#10b981]/10 border border-[#10b981]/30 hover:border-[#10b981]/60 text-[#34d399] hover:text-white rounded-full font-mono text-xs transition duration-200 select-none flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+          >
+            <Play size={10} />
+            query-cinch
+          </button>
+
           <button
             onClick={(e) => handleShortcutClick(e, "query-rag")}
             disabled={isTyping}

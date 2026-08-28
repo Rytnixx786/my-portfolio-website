@@ -69,6 +69,7 @@ function isCompleteAnswer(text: string, finishReason: string) {
 }
 
 const PROJECT_ALIASES: Record<string, string[]> = {
+  cinch: ["cinch", "cinch llm", "cinch serving", "llm serving", "serving platform", "inference gateway", "vllm gateway", "marlin", "awq"],
   "nexus-researcher": ["nexus", "nexus researcher", "research agent", "multi agent research"],
   mindstack: ["mindstack", "mind stack", "rag system", "production rag"],
   offboarder: ["offboarder", "off boarder", "off-boarder", "offboarding"],
@@ -122,8 +123,12 @@ function projectAnswerFor(normalized: string) {
 }
 
 function skillAnswerFor(normalized: string) {
+  if (/(serving|inference|vllm|marlin|quantization|cache|gateway)/i.test(normalized)) {
+    return "Mehedi Hasan designs self-hosted LLM serving platforms and async gateways, featuring AWQ Marlin INT4 GEMM acceleration, sub-5ms in-process CPU semantic caching, 3-state circuit breakers, and Kubernetes HPA autoscaling in Cinch.";
+  }
+
   if (/(backend|api|server|database|postgres|redis|supabase|docker)/i.test(normalized)) {
-    return "Mehedi Hasan's backend work centers on FastAPI, Node.js, Express, PostgreSQL, Redis, Supabase, Docker, and observable service boundaries, applied across Nexus Researcher, MindStack, OFFBoarder, MaSheba AI, and ARES.";
+    return "Mehedi Hasan's backend work centers on FastAPI, Node.js, Express, PostgreSQL, Redis, Supabase, Docker, and observable service boundaries, applied across Cinch, Nexus Researcher, MindStack, OFFBoarder, MaSheba AI, and ARES.";
   }
 
   if (/(rag|retrieval|grounded|hallucination|refusal|evidence)/i.test(normalized)) {
@@ -232,39 +237,45 @@ Mehedi Hasan's Profile:
 
 Operational Metrics:
 - 95.00% groundedness on factual QA benchmarks.
-- 122 backend integration tests maintained with 0 failures.
-- 8.68ms p95 TTFB on streamed runs.
+- 195 backend and gateway integration tests maintained with 0 failures.
+- 4.12ms semantic vector cache lookup (0W GPU power).
+- 10.86x throughput speedup on INT4 Marlin serving (331 tok/s).
 
 Key Projects:
-1. Nexus Researcher (Stateful multi-agent research)
+1. Cinch (Self-hosted LLM serving platform & async gateway control plane)
+   - Tech: Python 3.12, FastAPI, vLLM, AWQ Marlin, Kubernetes (k3d), Docker, Prometheus, OpenTelemetry, ONNX, Next.js.
+   - Repo: https://github.com/Rytnix786/Cinch
+   - Impact: 10.86x throughput speedup (331 tok/s), 4.12ms semantic cache hits (0W GPU), 45ms circuit breaker fast-fail, 195 verified tests, and 2-to-6 replica HPA autoscaling.
+   - Details: 14-stage asynchronous gateway around Marlin W4A16 AWQ quantized vLLM backends, sub-5ms in-process CPU ONNX semantic cache (cosine similarity >= 0.92), 3-state circuit breaker FSM, sliding-window rate limiter, EBNF grammar constraints with AST repair, closed-loop sandboxed tool executor, and per-tenant micro-dollar FinOps cost accounting.
+2. Nexus Researcher (Stateful multi-agent research)
    - Tech: LangGraph, FastAPI, PostgreSQL, SSE, Redis, Next.js.
    - Repo: https://github.com/Rytnix786/Nexus
    - Impact: Sustained 8.05 req/s under load, 91% refusal accuracy on adversarial queries, 122 tests.
    - Details: 8-node stateful workflow with parallel scraping, vector retrieval, refusal check, planner, and synthesizer.
-2. MindStack (Production RAG system)
+3. MindStack (Production RAG system)
    - Tech: FastAPI, React, Docker, ChromaDB, BM25, Mistral.
    - Repo: https://github.com/Rytnix786/MindStack
    - Impact: 95% groundedness, refusal accuracy improved from 26.67% to 66.67%.
    - Details: Hybrid retrieval (dense ChromaDB + sparse BM25) with reciprocal rank fusion (RRF) and custom NLI validation.
-3. OFFBoarder (Security-first enterprise platform)
+4. OFFBoarder (Security-first enterprise platform)
    - Tech: Next.js, TypeScript, PostgreSQL, Prisma, Supabase.
    - Repo: https://github.com/Rytnix786/OFF-Boarder
    - Impact: Multi-tenant database RLS, auth flows, segregation-of-duties controls, and immutable audit logs.
-4. MaSheba AI (Offline-first production mobile healthcare assistant)
+5. MaSheba AI (Offline-first production mobile healthcare assistant)
    - Tech: React Native, Expo, SQLite, Supabase, FastAPI.
    - Repo: https://github.com/DigontaDas/MaSheba--AI (Collaborator)
    - Impact: Full production mobile app with offline SQLite outbox sync queue, vital-signs triage, Bangla clinical chat, and background chunked upload queues. Demonstrates Mehedi's ability to ship production mobile apps for real-world, low-connectivity environments.
-5. ARES (ML Model Regression Detection & Promotion Gate System)
+6. ARES (ML Model Regression Detection & Promotion Gate System)
    - Tech: Python 3.11+, FastAPI, SQLAlchemy, PostgreSQL, Redis, Streamlit, Docker, GitHub Actions, DVC, Prometheus.
    - Repo: https://github.com/Rytnix786/Ares
    - Impact: 92%+ pytest coverage enforced in CI, idempotent evaluation records keyed by commit SHA + golden set version, configurable promotion gates for F1/accuracy/latency/critical-slices, full Prometheus observability at /metrics, Streamlit operator dashboard with leaderboard and drift monitor.
    - Details: Evaluates candidate ML models against a golden dataset and the active champion model. Applies configurable regression gate rules (metric deltas, critical slice F1 floors, latency budgets, statistical significance). Every evaluation is idempotent and auditable. GitHub Actions CI gates PRs with quality and regression checks. FastAPI exposes the results with API-key auth and webhooks.
 
 Technical Skills:
-- AI Systems: LangGraph, LangChain, RAG, LLM evals, Promptfoo, LangSmith.
-- MLOps: ARES model evaluation, Prometheus, DVC, GitHub Actions, regression gates, champion tracking.
-- Models: OpenAI, Mistral, Ollama, Refusal calibration.
-- Backend: FastAPI, Node.js, Express, PostgreSQL, Redis, Supabase, Docker.
+- AI Systems & Serving: vLLM, AWQ Marlin INT4, Semantic Vector Caching, LangGraph, LangChain, RAG, LLM evals, Promptfoo, LangSmith.
+- Infrastructure & MLOps: Kubernetes (k3d), Docker, Prometheus, OpenTelemetry, ARES model evaluation, DVC, GitHub Actions.
+- Models: Qwen2.5-7B, OpenAI, Mistral, Ollama, Refusal calibration.
+- Backend: Python, FastAPI, Node.js, Express, PostgreSQL, Redis, Supabase.
 - Frontend: Next.js, React, TypeScript, Tailwind CSS, React Native, Expo.
 - Mobile: React Native, Expo Router, SQLite offline-first sync, background upload queues.
 

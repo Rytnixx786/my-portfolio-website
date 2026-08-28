@@ -22,11 +22,16 @@ export const navItems = [
 
 export const metrics = [
   { value: "95%", label: "groundedness on factual QA" },
-  { value: "122", label: "backend tests maintained" },
-  { value: "8.68ms", label: "p95 TTFB on streamed runs" },
+  { value: "195", label: "system & gateway tests maintained" },
+  { value: "4.12ms", label: "semantic vector cache lookup (0W GPU)" },
 ] as const;
 
 export const focusAreas = [
+  {
+    title: "LLM Serving & Gateway Control Planes",
+    description:
+      "AWQ Marlin INT4 quantization, sub-5ms semantic caching, 3-state circuit breakers, token rate limiting, and Kubernetes HPA.",
+  },
   {
     title: "Grounded RAG",
     description:
@@ -51,24 +56,118 @@ export const focusAreas = [
 
 export const skillGroups = [
   {
-    title: "AI Systems",
-    skills: ["LangGraph", "LangChain", "RAG", "LLM evals", "Promptfoo", "LangSmith"],
+    title: "AI Systems & Serving",
+    skills: ["vLLM", "AWQ Marlin", "Semantic Caching", "LangGraph", "RAG", "LLM evals", "Promptfoo"],
   },
   {
-    title: "Models",
-    skills: ["OpenAI", "Mistral", "Ollama", "Prompt engineering", "Refusal calibration"],
+    title: "Models & Infra",
+    skills: ["Qwen2.5-7B", "OpenAI", "Mistral", "Kubernetes", "k3d", "Docker", "Prometheus", "OpenTelemetry"],
   },
   {
-    title: "Backend",
-    skills: ["FastAPI", "Node.js", "Express", "PostgreSQL", "Redis", "Supabase", "Docker"],
+    title: "Backend & Offline Sync",
+    skills: ["Python", "FastAPI", "Node.js", "Express", "PostgreSQL", "Redis", "SQLite Sync", "Supabase"],
   },
   {
-    title: "Frontend",
-    skills: ["Next.js", "React", "TypeScript", "Tailwind CSS", "React Native", "Expo"],
+    title: "Mobile & Frontend",
+    skills: ["React Native", "Expo Router", "Next.js", "React", "TypeScript", "Tailwind CSS"],
   },
 ] as const;
 
 export const projects = [
+  {
+    slug: "cinch",
+    name: "Cinch",
+    eyebrow: "Self-hosted LLM serving platform & async gateway",
+    description:
+      "A 14-stage asynchronous FastAPI gateway & INT4 Marlin quantized serving platform for Qwen2.5-7B on workstation GPUs with sub-5ms semantic caching, Kubernetes HPA, and multi-tenant FinOps governance.",
+    impact:
+      "10.86x throughput speedup (331 tok/s), 4.12ms semantic cache hits (0W GPU), 45ms circuit breaker fast-fail, 195 verified tests, and 2-to-6 replica HPA autoscaling on k3d.",
+    tech: ["Python", "FastAPI", "vLLM", "AWQ Marlin", "Kubernetes", "k3d", "Docker", "Prometheus", "OpenTelemetry", "ONNX", "Next.js"],
+    href: "https://github.com/Rytnix786/Cinch",
+    challenge:
+      "Serving LLMs in multi-tenant self-hosted environments creates severe operational challenges: raw vLLM workers lack security guardrails, budget allocation, and circuit breaking. Worker crashes cause 30-second TCP timeouts that cascade across microservices, while redundant prompt paraphrases repeatedly burn GPU cycles. Moreover, small models require strict EBNF JSON grammar enforcement to prevent broken downstream tool executions.",
+    approach:
+      "Built Cinch as an asynchronous 14-stage traffic governance gateway around Marlin W4A16 AWQ quantized vLLM backends. Integrated an in-process CPU ONNX semantic vector cache (cosine similarity >= 0.92) returning duplicate queries in 4.12ms with zero GPU power. Implemented a 3-state circuit breaker FSM that isolates GPU panics in 45.56ms (HTTP 503) and self-heals via canary probes. Added micro-dollar token accounting with hard HTTP 402 budget cutoffs, sliding-window rate limiting, AST JSON grammar repair, sandboxed server-side tool execution, and Kubernetes HPA autoscaling from 2 to 6 replicas under load.",
+    architecture: {
+      nodes: [
+        { id: "circuit_breaker", label: "Circuit Breaker FSM", desc: "45ms fast-fail with automated canary probe MTTR recovery" },
+        { id: "finops_gate", label: "FinOps Budget Gate", desc: "Pre-flight micro-dollar token cost accounting with HTTP 402 cutoff" },
+        { id: "guardrails", label: "Security & PII Filter", desc: "Lightweight regex & heuristic scanner masking SSN/keys before GPU" },
+        { id: "semantic_cache", label: "Semantic Vector Cache", desc: "In-process CPU cosine similarity cache returning hits in 4.12ms (0W GPU)" },
+        { id: "rate_limiter", label: "Dual-Tier Limiter & Queue", desc: "Sliding-window 60 RPM / 50k TPM limiter with interactive priority queue" },
+        { id: "vllm_engine", label: "vLLM Marlin Engine", desc: "INT4 W4A16 GEMM inference serving Qwen2.5-7B in 4.2 GiB VRAM" },
+        { id: "tool_engine", label: "Sandboxed Tool Executor", desc: "Closed-loop execution for Python REPL, SQL runner, and math tools" },
+        { id: "shadow_replayer", label: "Async Shadow Replayer", desc: "Fire-and-forget 5% candidate traffic duplication with Jaccard divergence score" },
+      ],
+      connections: [
+        { from: "circuit_breaker", to: "finops_gate", label: "Breaker Closed" },
+        { from: "finops_gate", to: "guardrails", label: "Budget OK" },
+        { from: "guardrails", to: "semantic_cache" },
+        { from: "semantic_cache", to: "rate_limiter", label: "Cache Miss" },
+        { from: "rate_limiter", to: "vllm_engine", label: "Priority Scheduled" },
+        { from: "vllm_engine", to: "tool_engine", label: "Tool Call Loop" },
+        { from: "vllm_engine", to: "shadow_replayer", label: "Async Replay" },
+        { from: "tool_engine", to: "vllm_engine", label: "Tool Output Re-inject" },
+      ]
+    },
+    lessons: [
+      "In-process CPU vector caching with pure Python TF-IDF and ONNX eliminates external Redis vector DB latency hops and avoids consuming precious GPU VRAM, delivering sub-5ms memoized responses with zero wattage overhead.",
+      "A 3-state Circuit Breaker FSM prevents cascading failures: when upstream vLLM workers crash or encounter CUDA OOM, Cinch fast-fails incoming requests in 45.56ms (HTTP 503) instead of waiting for 30-second socket timeouts.",
+      "Prefix caching and speculative decoding combine to slash Time-To-First-Token (TTFT) by 4.87x and accelerate per-token generation speed by 2.58x on consumer 8GB VRAM hardware."
+    ],
+    codeSnippet: `// 3-State Circuit Breaker FSM & Canary Recovery
+export class CircuitBreaker {
+  private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
+  private consecutiveFailures = 0;
+  private lastFailureTime = 0;
+  private canaryInFlight = false;
+
+  constructor(
+    private failureThreshold = 3,
+    private recoveryTimeoutMs = 10000
+  ) {}
+
+  canExecute(): { allowed: boolean; reason: string; retryAfter?: number } {
+    if (this.state === "CLOSED") return { allowed: true, reason: "healthy" };
+
+    const now = Date.now();
+    if (this.state === "OPEN") {
+      if (now - this.lastFailureTime >= this.recoveryTimeoutMs) {
+        this.state = "HALF_OPEN";
+        this.canaryInFlight = false;
+      } else {
+        const remaining = Math.ceil((this.recoveryTimeoutMs - (now - this.lastFailureTime)) / 1000);
+        return { allowed: false, reason: "Circuit breaker OPEN", retryAfter: remaining };
+      }
+    }
+
+    if (this.state === "HALF_OPEN") {
+      if (!this.canaryInFlight) {
+        this.canaryInFlight = true;
+        return { allowed: true, reason: "canary_probe" };
+      }
+      return { allowed: false, reason: "Canary probe in-flight", retryAfter: 2 };
+    }
+
+    return { allowed: true, reason: "healthy" };
+  }
+
+  recordSuccess() {
+    this.state = "CLOSED";
+    this.consecutiveFailures = 0;
+    this.canaryInFlight = false;
+  }
+
+  recordFailure() {
+    this.consecutiveFailures += 1;
+    this.lastFailureTime = Date.now();
+    this.canaryInFlight = false;
+    if (this.consecutiveFailures >= this.failureThreshold) {
+      this.state = "OPEN";
+    }
+  }
+}`,
+  },
   {
     slug: "nexus-researcher",
     name: "Nexus Researcher",
@@ -317,7 +416,7 @@ export async function flushSyncQueue() {
     challenge:
       "ML teams promoting models without rigorous evidence create silent production regressions: a model with a higher aggregate accuracy score can still fail on critical demographic slices or underperform on latency. Most pipelines lack idempotent evaluation records, champion history, and configurable slice-specific gates — making repeatable and auditable promotion decisions impossible.",
     approach:
-      "Built ARES as a full evaluation orchestration system. The core is a configurable `rules_engine` that checks candidate metrics against the active champion across F1, accuracy, precision, recall, critical slice performance, model size, and statistical significance. Evaluations are keyed by `commit_sha + golden_set_version + model_name` for idempotency. Results are persisted via async SQLAlchemy into PostgreSQL, exposed through a FastAPI API with API-key auth and rate limiting, and surfaced in a Streamlit dashboard with leaderboard, drill-down, drift monitor, and promotion workflow pages. GitHub Actions workflows gate every PR with quality and regression checks.",
+      "Built ARES as a full evaluation orchestration system. The core is a configurable \`rules_engine\` that checks candidate metrics against the active champion across F1, accuracy, precision, recall, critical slice performance, model size, and statistical significance. Evaluations are keyed by \`commit_sha + golden_set_version + model_name\` for idempotency. Results are persisted via async SQLAlchemy into PostgreSQL, exposed through a FastAPI API with API-key auth and rate limiting, and surfaced in a Streamlit dashboard with leaderboard, drill-down, drift monitor, and promotion workflow pages. GitHub Actions workflows gate every PR with quality and regression checks.",
     architecture: {
       nodes: [
         { id: "ci", label: "GitHub Actions", desc: "quality.yml / regression_gate.yml / drift_monitor.yml trigger evaluations on each PR" },

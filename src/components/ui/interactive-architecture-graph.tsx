@@ -18,6 +18,16 @@ interface NodeCoords {
 }
 
 const PROJECT_COORDS: Record<string, Record<string, NodeCoords>> = {
+  cinch: {
+    circuit_breaker: { x: 140, y: 90 },
+    finops_gate: { x: 500, y: 90 },
+    guardrails: { x: 860, y: 90 },
+    semantic_cache: { x: 860, y: 250 },
+    rate_limiter: { x: 500, y: 250 },
+    vllm_engine: { x: 140, y: 250 },
+    tool_engine: { x: 140, y: 410 },
+    shadow_replayer: { x: 500, y: 410 },
+  },
   "nexus-researcher": {
     planner: { x: 140, y: 90 },
     query_gen: { x: 500, y: 90 },
