@@ -127,7 +127,7 @@ export function Navbar() {
               <a
                 key={link.id}
                 href={link.href}
-                className={`relative flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-xl transition-colors focus-ring ${
+                className={`relative flex flex-col items-center justify-center min-h-[48px] py-1 px-1 rounded-xl transition-all touch-manipulation select-none active:scale-95 focus-ring ${
                   isActive
                     ? "text-primary font-semibold"
                     : "text-slate-400 hover:text-slate-200"

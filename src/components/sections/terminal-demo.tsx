@@ -435,7 +435,7 @@ export function TerminalDemo() {
                 key={s.cmd}
                 onClick={(e) => handleShortcutClick(e, s.cmd)}
                 disabled={isTyping}
-                className="px-4 py-2 bg-white/[0.02] border border-white/8 hover:border-primary/40 text-slate-300 hover:text-primary rounded-full font-mono text-xs sm:text-[13px] transition select-none flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                className="px-3.5 py-2 sm:px-4 bg-white/[0.02] border border-white/8 hover:border-primary/40 text-slate-300 hover:text-primary active:scale-95 touch-manipulation rounded-full font-mono text-xs sm:text-[13px] transition-all select-none flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
               >
                 <Icon size={13} className="text-primary" />
                 <span>{s.cmd}</span>

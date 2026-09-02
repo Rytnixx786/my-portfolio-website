@@ -84,7 +84,7 @@ export function ProjectDrawer({ project, isOpen, onClose }: ProjectDrawerProps) 
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 260, damping: 28 }}
-            className="relative z-10 w-full max-w-2xl bg-[#030705] border-l border-white/10 p-6 sm:p-8 overflow-y-auto shadow-2xl flex flex-col justify-between font-sans select-text scrollbar-thin"
+            className="relative z-10 w-full max-w-2xl bg-[#030705] border-l border-white/10 p-6 sm:p-8 overflow-y-auto shadow-2xl flex flex-col justify-between font-sans select-text scrollbar-thin overscroll-contain touch-pan-y"
           >
             <div className="space-y-6">
               {/* Header Navigation & Dismiss */}
@@ -101,7 +101,7 @@ export function ProjectDrawer({ project, isOpen, onClose }: ProjectDrawerProps) 
                 <button
                   ref={closeButtonRef}
                   onClick={onClose}
-                  className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer focus-ring"
+                  className="min-h-[48px] min-w-[48px] touch-manipulation flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all cursor-pointer focus-ring"
                   aria-label="Close Preview (Esc)"
                 >
                   <X size={18} />
@@ -231,7 +231,7 @@ export function ProjectDrawer({ project, isOpen, onClose }: ProjectDrawerProps) 
               <Link
                 href={`/work/${project.slug}`}
                 onClick={onClose}
-                className="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full bg-primary hover:bg-primary/90 py-3 px-5 text-xs font-semibold text-primary-foreground transition-colors cursor-pointer shadow-lg shadow-primary/20"
+                className="flex-1 min-h-[44px] touch-manipulation inline-flex items-center justify-center gap-2 rounded-full bg-primary hover:bg-primary/90 active:scale-[0.98] py-3 px-5 text-xs font-semibold text-primary-foreground transition-all cursor-pointer shadow-lg shadow-primary/20"
               >
                 <span>Read Full Case Study</span>
                 <ArrowRight size={14} />
@@ -241,7 +241,7 @@ export function ProjectDrawer({ project, isOpen, onClose }: ProjectDrawerProps) 
                 href={project.href}
                 target="_blank"
                 rel="noreferrer"
-                className="min-h-[44px] inline-flex items-center justify-center gap-2 rounded-full border border-white/10 hover:border-white/20 bg-white/5 py-3 px-5 text-xs font-mono text-slate-300 hover:text-white transition-colors"
+                className="min-h-[44px] touch-manipulation inline-flex items-center justify-center gap-2 rounded-full border border-white/10 hover:border-white/20 bg-white/5 active:scale-[0.98] py-3 px-5 text-xs font-mono text-slate-300 hover:text-white transition-all"
               >
                 <span>GitHub</span>
                 <GitBranch size={14} />

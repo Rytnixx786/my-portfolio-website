@@ -122,12 +122,17 @@ export function InteractiveHero() {
   const splineContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const mountTimer = globalThis.setTimeout(() => setMounted(true), 0);
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const isSmall = window.innerWidth < 768;
+      const isTouch = window.matchMedia("(max-width: 768px), (pointer: coarse)").matches;
+      setIsMobile(isSmall || isTouch);
     };
     checkMobile();
     window.addEventListener("resize", checkMobile, { passive: true });
+    const mountTimer = globalThis.setTimeout(() => {
+      setMounted(true);
+      checkMobile();
+    }, 0);
     return () => {
       globalThis.clearTimeout(mountTimer);
       window.removeEventListener("resize", checkMobile);
@@ -141,7 +146,7 @@ export function InteractiveHero() {
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-    // Trigger Spline download as soon as main thread is idle after first paint
+    // Trigger Spline download strictly on desktop devices
     if ("requestIdleCallback" in window) {
       const idleId = (
         window as unknown as {
@@ -224,15 +229,15 @@ export function InteractiveHero() {
       id="top"
       className="relative min-h-screen flex items-end bg-[#030705] overflow-hidden"
     >
-      {/* 1. Spline 3D Interactive Background Scene (Preserved with strict layout containment & onLoad crossfade) */}
+      {/* 1. DESKTOP ONLY: Spline 3D Interactive Background Scene (Strictly hidden on phone) */}
       <div
         ref={splineContainerRef}
-        className={`absolute inset-0 transition-opacity duration-1000 ${
+        className={`hidden md:block absolute inset-0 transition-opacity duration-1000 ${
           splineLoaded ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
         style={{ contain: "strict", willChange: "transform" }}
       >
-        {shouldLoadSpline && (
+        {!isMobile && shouldLoadSpline && (
           <Spline
             scene="https://prod.spline.design/Slk6b8kz3LRlKiyk/scene.splinecode"
             onLoad={() => setSplineLoaded(true)}
@@ -241,9 +246,9 @@ export function InteractiveHero() {
         )}
       </div>
 
-      {/* Ambient fallback that gracefully crossfades once 3D shaders are compiled */}
+      {/* 1b. DESKTOP ONLY: Ambient fallback crossfade */}
       <div
-        className={`absolute inset-0 bg-[#030705] transition-opacity duration-1000 ${
+        className={`hidden md:block absolute inset-0 bg-[#030705] transition-opacity duration-1000 ${
           splineLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
         }`}
         aria-hidden="true"
@@ -252,6 +257,19 @@ export function InteractiveHero() {
           className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,255,0,0.12),transparent_60%)] animate-pulse"
           style={{ animationDuration: "6s" }}
         />
+      </div>
+
+      {/* 1c. MOBILE ONLY: High-End Ultra-Lightweight Ambient Glow Mesh (Zero WebGL, Zero CPU/GPU lag, 120 FPS native) */}
+      <div
+        className="block md:hidden absolute inset-0 bg-[#030705] pointer-events-none"
+        aria-hidden="true"
+      >
+        {/* Soft emerald radial glow centered in viewport */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(0,255,0,0.14),transparent_65%)]" />
+        {/* Micro-dot subtle pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px] opacity-40" />
+        {/* Soft bottom vignette */}
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#030705] to-transparent" />
       </div>
 
       {/* 2. Soft Gradient Scrim for Flawless Text Legibility over 3D Cubes */}
