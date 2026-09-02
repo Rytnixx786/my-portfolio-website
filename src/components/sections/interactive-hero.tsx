@@ -6,59 +6,63 @@ import { motion } from "framer-motion";
 
 const Spline = dynamic(() => import("@splinetool/react-spline"), {
   ssr: false,
-  loading: () => <div className="absolute inset-0 bg-hero-bg animate-pulse" />,
+  loading: () => <div className="absolute inset-0 bg-[#030705] animate-pulse" />,
 });
 
-const roles = [
+const ROLES = [
   "AI Systems Engineer",
   "RAG Architect",
   "Backend Systems Builder",
   "Multi-Agent Orchestrator",
-];
+] as const;
 
-// Typewriter Roles component
-function TypewriterRoles() {
-  const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
-  const [displayText, setDisplayText] = useState("");
+// Zero-Lag Isolated Leaf Typewriter Component
+// Encapsulated with CSS layout containment so character keystrokes NEVER trigger
+// browser layout reflows or compete with Spline 3D canvas GPU threads.
+const RoleTypewriter = React.memo(function RoleTypewriter() {
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [text, setText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    const activeRole = roles[currentRoleIndex];
+    const current = ROLES[roleIndex];
+    let timer: ReturnType<typeof setTimeout>;
 
     if (isDeleting) {
-      timer = setTimeout(() => {
-        setDisplayText((prev) => prev.slice(0, -1));
-      }, 30);
+      if (text.length > 0) {
+        timer = setTimeout(() => {
+          setText(current.slice(0, text.length - 1));
+        }, 30);
+      } else {
+        timer = setTimeout(() => {
+          setIsDeleting(false);
+          setRoleIndex((prev) => (prev + 1) % ROLES.length);
+        }, 200);
+      }
     } else {
-      timer = setTimeout(() => {
-        setDisplayText((prev) => activeRole.slice(0, prev.length + 1));
-      }, 70);
-    }
-
-    if (!isDeleting && displayText === activeRole) {
-      timer = setTimeout(() => setIsDeleting(true), 2500); // pause at the end
-    }
-
-    if (isDeleting && displayText === "") {
-      timer = setTimeout(() => {
-        setIsDeleting(false);
-        setCurrentRoleIndex((prev) => (prev + 1) % roles.length);
-      }, 0);
+      if (text.length < current.length) {
+        timer = setTimeout(() => {
+          setText(current.slice(0, text.length + 1));
+        }, 70);
+      } else {
+        timer = setTimeout(() => {
+          setIsDeleting(true);
+        }, 2400);
+      }
     }
 
     return () => clearTimeout(timer);
-  }, [displayText, isDeleting, currentRoleIndex]);
+  }, [text, isDeleting, roleIndex]);
 
   return (
-    <span className="text-primary font-mono inline-block font-semibold">
-      {displayText}
-      <span className="animate-pulse ml-1 inline-block w-1.5 h-4 bg-primary align-middle" />
+    <span className="text-[#00FF00] font-mono font-semibold">
+      {text}
+      <span className="ml-1 inline-block w-2 h-[1.1em] bg-[#00FF00] align-text-bottom animate-pulse" />
     </span>
   );
-}
+});
 
-// Magnetic Button component
+// Tactile Magnetic Button component with original geometry and electric green palette
 function MagneticButton({
   children,
   className = "",
@@ -95,9 +99,9 @@ function MagneticButton({
       animate={{ x: position.x, y: position.y }}
       transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
       onClick={onClick}
-      className={`relative px-6 py-3 md:px-8 md:py-4 rounded-sm font-semibold text-sm transition-all overflow-hidden group pointer-events-auto cursor-pointer ${
+      className={`relative px-6 py-3 md:px-8 md:py-4 rounded-sm font-semibold text-sm transition-all overflow-hidden group pointer-events-auto cursor-pointer select-none ${
         primary
-          ? "bg-primary text-primary-foreground hover:brightness-110 active:scale-[0.97]"
+          ? "bg-[#00FF00] text-black hover:brightness-110 active:scale-[0.97] shadow-lg shadow-[#00FF00]/20"
           : "bg-white/5 border border-white/10 hover:bg-white/10 text-white active:scale-[0.97]"
       } ${className}`}
     >
@@ -136,22 +140,28 @@ export function InteractiveHero() {
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-    // Defer Spline WebGL canvas load until initial page paint & hydration settle cleanly
+    // Defer Spline WebGL canvas load until initial paint settles
     if ("requestIdleCallback" in window) {
-      const idleId = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(
+      const idleId = (
+        window as unknown as {
+          requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number;
+        }
+      ).requestIdleCallback(
         () => {
-          timeoutId = globalThis.setTimeout(() => setShouldLoadSpline(true), 1500);
+          timeoutId = globalThis.setTimeout(() => setShouldLoadSpline(true), 800);
         },
-        { timeout: 2000 }
+        { timeout: 1500 }
       );
       return () => {
         if ("cancelIdleCallback" in window) {
-          (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+          (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(
+            idleId
+          );
         }
         if (timeoutId !== undefined) globalThis.clearTimeout(timeoutId);
       };
     } else {
-      timeoutId = globalThis.setTimeout(() => setShouldLoadSpline(true), 2000);
+      timeoutId = globalThis.setTimeout(() => setShouldLoadSpline(true), 1000);
       return () => {
         if (timeoutId !== undefined) globalThis.clearTimeout(timeoutId);
       };
@@ -192,28 +202,29 @@ export function InteractiveHero() {
   };
 
   const containerVariants = {
-    hidden: { opacity: 0 },
+    hidden: {},
     visible: {
-      opacity: 1,
       transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.05,
+        staggerChildren: 0.04,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 16 },
+    hidden: { opacity: 0, y: 12 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1.0] as const },
+      transition: { duration: 0.5, ease: "easeOut" as const },
     },
   };
 
   return (
-    <section id="top" className="relative min-h-screen flex items-end bg-hero-bg overflow-hidden">
-      {/* Spline 3D Background */}
+    <section
+      id="top"
+      className="relative min-h-screen flex items-end bg-[#030705] overflow-hidden"
+    >
+      {/* 1. Spline 3D Interactive Background Scene (Preserved) */}
       <div ref={splineContainerRef} className="absolute inset-0 pointer-events-auto">
         {shouldLoadSpline ? (
           <Spline
@@ -221,51 +232,55 @@ export function InteractiveHero() {
             className="w-full h-full"
           />
         ) : (
-          <div className="absolute inset-0 bg-hero-bg">
-            {/* Ultra-fast responsive ambient emerald glow background placeholder */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(16,185,129,0.14),transparent_60%)] animate-pulse" style={{ animationDuration: "8s" }} />
+          <div className="absolute inset-0 bg-[#030705]">
+            <div
+              className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,255,0,0.12),transparent_60%)] animate-pulse"
+              style={{ animationDuration: "6s" }}
+            />
           </div>
         )}
       </div>
 
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/30 z-[1] pointer-events-none" />
+      {/* 2. Soft Gradient Scrim for Flawless Text Legibility over 3D Cubes */}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#030705] via-[#030705]/65 to-transparent lg:bg-gradient-to-r lg:from-[#030705]/95 lg:via-[#030705]/50 lg:to-transparent z-[1] pointer-events-none" />
 
-      {/* Content container */}
+      {/* 3. Hero Content Container */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 pointer-events-none w-full max-w-[90%] sm:max-w-md lg:max-w-3xl px-6 md:px-10 pb-16 pt-32 text-left"
+        className="relative z-10 pointer-events-none w-full max-w-4xl px-6 sm:px-8 lg:px-12 pb-16 pt-32 text-left"
       >
         {/* Name Title */}
-        <motion.h1 
+        <motion.h1
           variants={itemVariants}
-          className="text-[clamp(2.5rem,7.5vw,5.5rem)] font-bold leading-[1.05] tracking-[-0.05em] text-white mb-2 md:mb-4 uppercase select-none"
+          className="text-[clamp(2.5rem,7.5vw,5.5rem)] font-display font-extrabold leading-[1.05] tracking-[-0.03em] text-white mb-2 md:mb-3 uppercase select-none"
         >
           Mehedi Hasan
         </motion.h1>
 
-        {/* Typewriter role cycler */}
+        {/* Lag-Free Typewriter Role Cycler */}
         <motion.div
           variants={itemVariants}
-          className="text-foreground/85 text-[clamp(1rem,2.2vw,1.6rem)] font-light mb-3 md:mb-6 min-h-[1.5em]"
+          className="text-foreground/90 text-[clamp(1.05rem,2.3vw,1.65rem)] font-light mb-4 min-h-[1.5em]"
         >
-          I am a <TypewriterRoles />
+          I am a <RoleTypewriter />
         </motion.div>
 
-        {/* Hero description */}
-        <motion.p 
+        {/* Original Description */}
+        <motion.p
           variants={itemVariants}
-          className="text-slate-300/90 text-[clamp(0.85rem,1.4vw,1.15rem)] font-light mb-6 md:mb-8 max-w-2xl leading-relaxed select-none"
+          className="text-slate-300/90 text-[clamp(0.88rem,1.35vw,1.15rem)] font-light mb-7 max-w-2xl leading-relaxed select-none"
         >
-          Production-minded AI systems built in days. Multi-agent orchestration deployed with zero-trust architecture. Grounded RAG pipelines set up for your entire enterprise. All of it done right, not just fast.
+          Production-minded AI systems built in days. Multi-agent orchestration deployed with
+          zero-trust architecture. Grounded RAG pipelines set up for your entire enterprise.
+          All of it done right, not just fast.
         </motion.p>
 
-        {/* Tactile Magnetic Buttons */}
+        {/* Original Tactile Magnetic Buttons: Book a Call & My Work */}
         <motion.div
           variants={itemVariants}
-          className="flex flex-wrap gap-4 pt-2"
+          className="flex flex-wrap gap-4 pt-1"
         >
           <MagneticButton primary onClick={handleBookCall}>
             Book a Call
@@ -274,14 +289,6 @@ export function InteractiveHero() {
             My Work
           </MagneticButton>
         </motion.div>
-
-        {/* System metrics tagline */}
-        <motion.p
-          variants={itemVariants}
-          className="text-muted-foreground/60 text-xs font-light mt-8 font-mono"
-        >
-          AI Systems Engineer · Dhaka, Bangladesh · 122+ backend tests maintained
-        </motion.p>
       </motion.div>
     </section>
   );

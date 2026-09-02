@@ -1,29 +1,46 @@
 @import "tailwindcss";
 
 :root {
-  --background: 0 0% 10%;
-  --foreground: 0 0% 96%;
-  --primary: 119 99% 46%;
-  --primary-foreground: 0 0% 4%;
-  --secondary: 0 0% 18%;
-  --secondary-foreground: 0 0% 96%;
-  --muted: 0 0% 16%;
-  --muted-foreground: 0 0% 60%;
-  --accent: 119 99% 46%;
-  --accent-foreground: 0 0% 4%;
-  --destructive: 0 84% 60%;
-  --border: 0 0% 20%;
-  --input: 0 0% 20%;
-  --ring: 119 99% 46%;
+  /* Obsidian Slate background (#030705) */
+  --background: 150 40% 2%;
+  --foreground: 210 40% 98%;
+
+  /* Elevated Surfaces */
+  --surface: 150 26% 4%;
+  --surface-elevated: 150 20% 7%;
+
+  /* Calibrated Emerald Accent (#10b981 - restrained, not neon) */
+  --primary: 158 64% 42%;
+  --primary-foreground: 150 40% 2%;
+
+  /* Secondary & Muted hierarchy */
+  --secondary: 150 16% 9%;
+  --secondary-foreground: 210 25% 92%;
+  --muted: 150 18% 6%;
+  --muted-foreground: 215 16% 65%;
+
+  /* Interactive accent */
+  --accent: 158 64% 42%;
+  --accent-foreground: 150 40% 2%;
+
+  /* Restrained hairline borders & inputs */
+  --border: 0 0% 100% / 0.08;
+  --input: 0 0% 100% / 0.1;
+  --ring: 158 64% 42%;
+
+  /* Standardized radius scale */
   --radius: 0.5rem;
-  --nav-button: 0 0% 18%;
-  --hero-bg: 0 0% 8%;
-  --emerald-glow: rgba(16, 185, 129, 0.15);
+
+  --nav-button: 150 16% 9%;
+  --hero-bg: 150 40% 2%;
+  --emerald-glow: rgba(16, 185, 129, 0.08);
 }
 
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
+  --color-surface: hsl(var(--surface));
+  --color-surface-elevated: hsl(var(--surface-elevated));
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
   --color-secondary: hsl(var(--secondary));
@@ -32,30 +49,34 @@
   --color-muted-foreground: hsl(var(--muted-foreground));
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
+  --color-destructive: hsl(0 84% 60%);
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
   --color-nav-button: hsl(var(--nav-button));
   --color-hero-bg: hsl(var(--hero-bg));
-  --radius-lg: var(--radius);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-2xl: calc(var(--radius) + 12px);
+
   --font-sora: var(--font-sora);
   --font-sans: var(--font-sora);
   --font-display: var(--font-display);
 
-  --animate-fade-up: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  --animate-fade-in: fade-in 0.5s ease-out forwards;
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-fade-in: fade-in 0.35s ease-out forwards;
 
   @keyframes fade-up {
     0% {
       opacity: 0;
-      transform: translateY(20px);
-      filter: blur(4px);
+      transform: translateY(16px);
     }
     100% {
       opacity: 1;
       transform: translateY(0);
-      filter: blur(0);
     }
   }
   @keyframes fade-in {
@@ -73,22 +94,59 @@
 }
 
 html {
-  background: hsl(var(--background));
+  background: #030705;
   color-scheme: dark;
 }
 
 body {
   min-height: 100vh;
   overflow-x: hidden;
-  background: hsl(var(--background));
+  background: #030705;
   color: hsl(var(--foreground));
   font-family: var(--font-sora), system-ui, sans-serif;
   text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: rgba(16, 185, 129, 0.28);
+  background: rgba(16, 185, 129, 0.22);
   color: #ffffff;
+}
+
+/* Typography Utilities (Taste-Skill & Make-Interfaces-Feel-Better) */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Restrained Surface Utilities (Anti-Slop: clean surfaces, no heavy glow) */
+.surface-card {
+  background-color: hsl(var(--surface) / 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+}
+
+.surface-card-hover {
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.surface-card-hover:hover {
+  border-color: rgba(16, 185, 129, 0.2);
+  background-color: hsl(var(--surface-elevated) / 0.92);
+}
+
+/* Accessible Focus Ring Utility (Web-Interface-Guidelines) */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  outline: 2px solid hsl(var(--primary) / 0.6);
+  outline-offset: 2px;
 }
 
 a,

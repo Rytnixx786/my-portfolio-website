@@ -7,27 +7,30 @@ import { InteractiveHero } from "@/components/sections/interactive-hero";
 
 // Dynamically split below-the-fold interactive sections for lightweight initial payload
 const Projects = dynamic(() => import("@/components/sections/projects").then((mod) => mod.Projects), {
-  loading: () => <div className="min-h-[400px] bg-[#020804]" />,
+  loading: () => <div className="min-h-[400px] bg-[#030705]" />,
 });
 
-const CapabilitiesAccordion = dynamic(() => import("@/components/sections/capabilities-accordion").then((mod) => mod.CapabilitiesAccordion), {
-  loading: () => <div className="min-h-[300px] bg-[#020804]" />,
-});
+const CapabilitiesAccordion = dynamic(
+  () => import("@/components/sections/capabilities-accordion").then((mod) => mod.CapabilitiesAccordion),
+  {
+    loading: () => <div className="min-h-[300px] bg-[#030705]" />,
+  }
+);
 
 const TerminalDemo = dynamic(() => import("@/components/sections/terminal-demo").then((mod) => mod.TerminalDemo), {
-  loading: () => <div className="min-h-[450px] bg-[#020804]" />,
+  loading: () => <div className="min-h-[450px] bg-[#030705]" />,
 });
 
 const TechStack = dynamic(() => import("@/components/sections/tech-stack").then((mod) => mod.TechStack), {
-  loading: () => <div className="min-h-[300px] bg-[#020804]" />,
+  loading: () => <div className="min-h-[300px] bg-[#030705]" />,
 });
 
-const InteractiveStory = dynamic(() => import("@/components/sections/interactive-story").then((mod) => mod.InteractiveStory), {
-  loading: () => <div className="min-h-[500px] bg-[#020804]" />,
+const Journey = dynamic(() => import("@/components/sections/journey").then((mod) => mod.Journey), {
+  loading: () => <div className="min-h-[450px] bg-[#030705]" />,
 });
 
 const Contact = dynamic(() => import("@/components/sections/contact").then((mod) => mod.Contact), {
-  loading: () => <div className="min-h-[300px] bg-[#020804]" />,
+  loading: () => <div className="min-h-[300px] bg-[#030705]" />,
 });
 
 export default function Home() {
@@ -43,13 +46,10 @@ export default function Home() {
         <CapabilitiesAccordion />
         <TerminalDemo />
         <TechStack />
-        <InteractiveStory />
+        <Journey />
         <Contact />
       </main>
       <Footer />
     </>
   );
 }
-
-
-

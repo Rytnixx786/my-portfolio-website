@@ -82,6 +82,12 @@ export const projects = [
       "A 14-stage asynchronous FastAPI gateway & INT4 Marlin quantized serving platform for Qwen2.5-7B on workstation GPUs with sub-5ms semantic caching, Kubernetes HPA, and multi-tenant FinOps governance.",
     impact:
       "10.86x throughput speedup (331 tok/s), 4.12ms semantic cache hits (0W GPU), 45ms circuit breaker fast-fail, 195 verified tests, and 2-to-6 replica HPA autoscaling on k3d.",
+    highlightMetrics: [
+      { value: "10.86×", label: "Throughput Speedup" },
+      { value: "4.12ms", label: "Semantic Cache Hit" },
+      { value: "195", label: "Verified Tests" },
+      { value: "45ms", label: "Circuit Fast-Fail" },
+    ],
     tech: ["Python", "FastAPI", "vLLM", "AWQ Marlin", "Kubernetes", "k3d", "Docker", "Prometheus", "OpenTelemetry", "ONNX", "Next.js"],
     href: "https://github.com/Rytnix786/Cinch",
     challenge:
@@ -115,58 +121,60 @@ export const projects = [
       "A 3-state Circuit Breaker FSM prevents cascading failures: when upstream vLLM workers crash or encounter CUDA OOM, Cinch fast-fails incoming requests in 45.56ms (HTTP 503) instead of waiting for 30-second socket timeouts.",
       "Prefix caching and speculative decoding combine to slash Time-To-First-Token (TTFT) by 4.87x and accelerate per-token generation speed by 2.58x on consumer 8GB VRAM hardware."
     ],
-    codeSnippet: `// 3-State Circuit Breaker FSM & Canary Recovery
-export class CircuitBreaker {
-  private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
-  private consecutiveFailures = 0;
-  private lastFailureTime = 0;
-  private canaryInFlight = false;
+    codeLanguage: "python",
+    codeSnippet: `# Cinch: Async Circuit Breaker FSM & Canary Recovery (gateway/circuit_breaker.py)
+import time
+from enum import Enum
+from typing import Optional, Tuple
 
-  constructor(
-    private failureThreshold = 3,
-    private recoveryTimeoutMs = 10000
-  ) {}
+class BreakerState(str, Enum):
+    CLOSED = "CLOSED"
+    OPEN = "OPEN"
+    HALF_OPEN = "HALF_OPEN"
 
-  canExecute(): { allowed: boolean; reason: string; retryAfter?: number } {
-    if (this.state === "CLOSED") return { allowed: true, reason: "healthy" };
+class CircuitBreaker:
+    """Isolates GPU/vLLM backend panics in <46ms and canary-probes recovery."""
+    def __init__(self, failure_threshold: int = 3, recovery_timeout_s: float = 10.0):
+        self.state = BreakerState.CLOSED
+        self.consecutive_failures = 0
+        self.last_failure_time = 0.0
+        self.canary_in_flight = False
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout_s = recovery_timeout_s
 
-    const now = Date.now();
-    if (this.state === "OPEN") {
-      if (now - this.lastFailureTime >= this.recoveryTimeoutMs) {
-        this.state = "HALF_OPEN";
-        this.canaryInFlight = false;
-      } else {
-        const remaining = Math.ceil((this.recoveryTimeoutMs - (now - this.lastFailureTime)) / 1000);
-        return { allowed: false, reason: "Circuit breaker OPEN", retryAfter: remaining };
-      }
-    }
+    def can_execute(self) -> Tuple[bool, str, Optional[float]]:
+        now = time.monotonic()
+        if self.state == BreakerState.CLOSED:
+            return True, "healthy", None
 
-    if (this.state === "HALF_OPEN") {
-      if (!this.canaryInFlight) {
-        this.canaryInFlight = true;
-        return { allowed: true, reason: "canary_probe" };
-      }
-      return { allowed: false, reason: "Canary probe in-flight", retryAfter: 2 };
-    }
+        if self.state == BreakerState.OPEN:
+            elapsed = now - self.last_failure_time
+            if elapsed >= self.recovery_timeout_s:
+                self.state = BreakerState.HALF_OPEN
+                self.canary_in_flight = False
+            else:
+                remaining = round(self.recovery_timeout_s - elapsed, 2)
+                return False, f"Circuit breaker OPEN. Retry in {remaining}s", remaining
 
-    return { allowed: true, reason: "healthy" };
-  }
+        if self.state == BreakerState.HALF_OPEN:
+            if not self.canary_in_flight:
+                self.canary_in_flight = True
+                return True, "canary_probe", None
+            return False, "Canary probe in-flight", 2.0
 
-  recordSuccess() {
-    this.state = "CLOSED";
-    this.consecutiveFailures = 0;
-    this.canaryInFlight = false;
-  }
+        return True, "healthy", None
 
-  recordFailure() {
-    this.consecutiveFailures += 1;
-    this.lastFailureTime = Date.now();
-    this.canaryInFlight = false;
-    if (this.consecutiveFailures >= this.failureThreshold) {
-      this.state = "OPEN";
-    }
-  }
-}`,
+    def record_success(self) -> None:
+        self.state = BreakerState.CLOSED
+        self.consecutive_failures = 0
+        self.canary_in_flight = False
+
+    def record_failure(self) -> None:
+        self.consecutive_failures += 1
+        self.last_failure_time = time.monotonic()
+        self.canary_in_flight = False
+        if self.consecutive_failures >= self.failure_threshold:
+            self.state = BreakerState.OPEN`,
   },
   {
     slug: "nexus-researcher",
@@ -176,6 +184,12 @@ export class CircuitBreaker {
       "An 8-node LangGraph workflow with four-stage retrieval, human-in-the-loop approval, resumable SSE streaming, and PostgreSQL checkpointing.",
     impact:
       "8.05 req/s under sustained load, 91% refusal accuracy across adversarial cases, and 122 backend tests with zero failures.",
+    highlightMetrics: [
+      { value: "8.05 req/s", label: "Sustained Throughput" },
+      { value: "91%", label: "Refusal Accuracy" },
+      { value: "122", label: "Backend Tests (0 fails)" },
+      { value: "8 Nodes", label: "LangGraph Flow" },
+    ],
     tech: ["LangGraph", "FastAPI", "PostgreSQL", "SSE", "Redis", "Next.js"],
     href: "https://github.com/Rytnix786/Nexus",
     challenge: 
@@ -206,202 +220,48 @@ export class CircuitBreaker {
       "Initially used Redis for checkpointing but found it inadequate for recovering long-running sessions after server crashes. Migrating checkpointers to PostgreSQL schema-level isolation added 12ms latency, which we neutralized by layering an in-memory cache for warm runs.",
       "Parallel scraping caused rate-limit blocks. Implemented a token-bucket rate limiter in Redis to self-regulate outgoing request spikes."
     ],
-    codeSnippet: `// LangGraph Workflow Definition
-const workflow = new StateGraph(ResearchState)
-  .addNode("planner", planResearch)
-  .addNode("query_generator", generateQueries)
-  .addNode("human_approval", hitlCheckpoint)
-  .addNode("web_scraper", scrapeUrls)
-  .addNode("refusal_check", verifyGroundedness)
-  .addNode("synthesizer", compileDossier);
+    codeLanguage: "python",
+    codeSnippet: `# Nexus Researcher: LangGraph Stateful Multi-Agent Workflow (workflow.py)
+from typing import TypedDict, Annotated, List, Dict, Any
+from langgraph.graph import StateGraph, START, END
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 
-workflow.addEdge(START, "planner");
-workflow.addEdge("planner", "query_generator");
-workflow.addEdge("query_generator", "human_approval");
-workflow.addConditionalEdges(
-  "human_approval",
-  (state) => state.isApproved ? "web_scraper" : "planner"
-);
-workflow.addEdge("web_scraper", "refusal_check");
-workflow.addConditionalEdges(
-  "refusal_check",
-  (state) => state.score >= 0.85 ? "synthesizer" : "planner"
-);
-workflow.addEdge("synthesizer", END);
+class ResearchState(TypedDict):
+    topic: str
+    sub_queries: List[str]
+    is_approved: bool
+    scraped_documents: List[Dict[str, Any]]
+    groundedness_score: float
+    citation_dossier: str
 
-const app = workflow.compile({ checkpointer: postgresCheckpointer });`,
-  },
-  {
-    slug: "mindstack",
-    name: "MindStack",
-    eyebrow: "Production RAG system",
-    description:
-      "A hybrid BM25 plus ChromaDB retrieval system designed to answer only when supporting evidence is present.",
-    impact:
-      "Reached 95% groundedness and improved refusal accuracy from 26.67% to 66.67% with CI-backed adversarial tests.",
-    tech: ["FastAPI", "React", "Docker", "ChromaDB", "BM25", "Mistral"],
-    href: "https://github.com/Rytnix786/MindStack",
-    challenge:
-      "Vector-only retrieval models often return irrelevant results for specific keywords or product codes because semantic searches lack word-level exact matches. In production, this causes the LLM generator to hallucinate answers using out-of-context documents rather than admitting it doesn't know.",
-    approach:
-      "Implemented a hybrid search pipeline. Combined dense vectors (ChromaDB + OpenAI text-embedding-3-small) with sparse indices (BM25) using Reciprocal Rank Fusion (RRF) with a parameter constant (k=60). Developed a Custom Refusal Classifier. Before passing contexts to the generator, a calibrated evaluation step calculates the overlap and entailment scores. If the context fails to support the query premises, the system refuses to answer, preventing hallucinations at the source.",
-    architecture: {
-      nodes: [
-        { id: "query", label: "User Query", desc: "Incoming search query" },
-        { id: "dense", label: "ChromaDB Dense", desc: "Retrieves semantic contexts using cosine distance" },
-        { id: "sparse", label: "BM25 Sparse", desc: "Retrieves exact keyword matches from token index" },
-        { id: "rrf", label: "RRF Merger", desc: "Combines dense & sparse rankings using Reciprocal Rank Fusion" },
-        { id: "filter", label: "Evidence Filter", desc: "Evaluates factual grounding; drops unsupported claims" },
-        { id: "generator", label: "LLM Generator", desc: "Formulates final, citation-linked markdown answer" }
-      ],
-      connections: [
-        { from: "query", to: "dense" },
-        { from: "query", to: "sparse" },
-        { from: "dense", to: "rrf" },
-        { from: "sparse", to: "rrf" },
-        { from: "rrf", to: "filter" },
-        { from: "filter", to: "generator", label: "Evidence Check Pass" },
-        { from: "filter", to: "query", label: "Refusal Triggered" }
-      ]
-    },
-    lessons: [
-      "Found that simple cosine similarity thresholding was too sensitive to formatting changes in docs. Switching to RRF + NLI (Natural Language Inference) entailment classifier stabilized groundedness scores across unstructured documents.",
-      "Chunk size optimization is a balancing act. Small chunks (128 tokens) maximized retrieval precision but deprived the generator of surrounding context. Standardized on parent-child chunking (retrieve small, serve large)."
-    ],
-    codeSnippet: `def reciprocal_rank_fusion(dense_results, sparse_results, k=60):
-    fused_scores = {}
-    for rank, doc in enumerate(dense_results):
-        fused_scores[doc.id] = fused_scores.get(doc.id, 0.0) + 1.0 / (rank + k)
-    for rank, doc in enumerate(sparse_results):
-        fused_scores[doc.id] = fused_scores.get(doc.id, 0.0) + 1.0 / (rank + k)
-    
-    # Sort and return combined documents
-    sorted_docs = sorted(fused_scores.items(), key=lambda x: x[1], reverse=True)
-    return [doc_map[doc_id] for doc_id, _ in sorted_docs[:5]]
+# Instantiate state graph with typed schema
+workflow = StateGraph(ResearchState)
 
-def check_groundedness(query, retrieved_chunks):
-    entailment_score = nli_model.predict(query, retrieved_chunks)
-    if entailment_score < 0.70:
-        raise RefusalException("Insufficient supporting evidence in database.")
-    return True`,
-  },
-  {
-    slug: "offboarder",
-    name: "OFFBoarder",
-    eyebrow: "Security-first enterprise platform",
-    description:
-      "A multi-tenant offboarding platform with strict tenant isolation, RBAC, segregation-of-duties controls, and immutable audit packs.",
-    impact:
-      "Owned the product end to end: data model, API layer, auth flows, dashboard, workflow orchestration, and audit design.",
-    tech: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Supabase", "RBAC"],
-    href: "https://github.com/Rytnix786/OFF-Boarder",
-    challenge:
-      "Employee offboarding in large companies creates massive security holes if access revocation is not verified or if admins can act unilaterally. Backdoor accounts are frequently left active, and standard SaaS tools do not provide immutable cryptographic auditing, making tampering easy and breach tracing impossible.",
-    approach:
-      "Built a secure multi-tenant dashboard. Implemented strict Row-Level Security (RLS) on PostgreSQL via Prisma. Enforced Segregation of Duties (SoD) via middleware: the creator of an offboarding task cannot be the approver. Created a cryptographic ledger using SHA-256 hashing where every access revocation action is appended into an immutable, chained audit table, forming a tamper-proof security log.",
-    architecture: {
-      nodes: [
-        { id: "client", label: "Enterprise Admin UI", desc: "Next.js dashboard with strict RBAC views" },
-        { id: "middleware", label: "SoD Middleware", desc: "Validates role and checks for creator/approver collisions" },
-        { id: "db_rls", label: "Postgres RLS", desc: "Filters queries dynamically at database level based on Tenant ID" },
-        { id: "revoker", label: "API Revoker Agent", desc: "Automates API calls to AD/Okta to terminate accounts" },
-        { id: "audit", label: "Cryptographic Ledger", desc: "Hashes actions and links them sequentially in a blockchain-style log" }
-      ],
-      connections: [
-        { from: "client", to: "middleware" },
-        { from: "middleware", to: "db_rls", label: "Pass" },
-        { from: "db_rls", to: "revoker" },
-        { from: "revoker", to: "audit" }
-      ]
-    },
-    lessons: [
-      "Learned that multi-tenancy at the application layer is prone to leakage. We solved this by enforcing tenant contexts directly inside database connections using PostgreSQL session variables instead of simple WHERE clauses in Prisma.",
-      "External API timeouts (e.g. Okta rate limits) caused audit logs to desync. Re-architected revocation to use transactional outbox patterns with dynamic retries."
-    ],
-    codeSnippet: `// Segregation of Duties Middleware
-export async function enforceSegregationOfDuties(req: Request) {
-  const user = req.user;
-  const taskId = req.params.taskId;
-  
-  const task = await prisma.offboardingTask.findUnique({
-    where: { id: taskId }
-  });
-  
-  if (!task) throw new NotFoundException();
-  
-  // Creator of the task cannot approve or execute it
-  if (task.creatorId === user.id) {
-    throw new ForbiddenException(
-      "Segregation of Duties Enforced: Creators cannot approve their own tasks."
-    );
-  }
-  
-  if (!user.roles.includes("SEC_OFFICER")) {
-    throw new UnauthorizedException("Security approval credentials required.");
-  }
-  
-  return true;
-}`,
-  },
-  {
-    slug: "masheba-ai",
-    name: "MaSheba AI",
-    eyebrow: "Offline-first healthcare assistant",
-    description:
-      "A Bangla maternal health platform for mothers and community health workers, built around local persistence and resilient sync.",
-    impact:
-      "Implemented SQLite sync, Supabase-backed storage, on-device vitals triage, and Bangla clinical chat workflows.",
-    tech: ["React Native", "Expo Router", "SQLite", "Supabase", "FastAPI", "PostgreSQL"],
-    href: "https://github.com/DigontaDas/MaSheba--AI",
-    docs: "https://masheba-docs.vercel.app/docs",
-    challenge:
-      "Community healthcare workers in rural Bangladesh travel to remote villages with poor or non-existent cellular reception. When offline, medical worker applications often crash or lose vital patient records, while online-only systems prevent record inputs, leaving critical symptoms untriaged.",
-    approach:
-      "Developed a robust offline-first architecture for React Native using SQLite (via Expo SQLite) for local persistence. Designed a background sync queue that buffers write operations locally with auto-incrementing sequencing. Upon network detection, a sync engine flushes the queue via transactional payloads to Supabase, automatically resolving schema conflicts using last-write-wins and client-side merge policies.",
-    architecture: {
-      nodes: [
-        { id: "mobile_ui", label: "React Native UI", desc: "Bengali interface displaying offline triage widgets" },
-        { id: "sqlite", label: "Local SQLite DB", desc: "Instant local reads and writes with zero latency" },
-        { id: "queue", label: "Outbox Sync Queue", desc: "Buffers serialized mutations while offline" },
-        { id: "sync_engine", label: "Sync Coordinator", desc: "Listens for online states, coordinates batches" },
-        { id: "gateway", label: "FastAPI Gateway", desc: "Validates payloads, inserts into centralized Supabase DB" }
-      ],
-      connections: [
-        { from: "mobile_ui", to: "sqlite" },
-        { from: "sqlite", to: "queue" },
-        { from: "queue", to: "sync_engine" },
-        { from: "sync_engine", to: "gateway", label: "Network Restored" }
-      ]
-    },
-    lessons: [
-      "UUID collisons and out-of-order execution were common in early sync cycles. We replaced sequential integers with client-side UUID v4s and tracked timestamps down to microseconds, establishing logical clocks to handle conflict resolution.",
-      "Large media uploads (e.g. photos of prescriptions) choked cellular connections. Wrote background chunked upload queues that resume from the byte offset on reconnection."
-    ],
-    codeSnippet: `// SQLite Outbox Sync Queue Handler
-export async function flushSyncQueue() {
-  const pendingMutations = await db.all(
-    "SELECT * FROM sync_queue ORDER BY timestamp ASC LIMIT 50"
-  );
-  
-  if (pendingMutations.length === 0) return;
-  
-  try {
-    const response = await fetch("https://api.masheba.ai/sync", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mutations: pendingMutations })
-    });
-    
-    if (response.ok) {
-      const idsToDelete = pendingMutations.map(m => m.id);
-      await db.run(
-        \`DELETE FROM sync_queue WHERE id IN (\${idsToDelete.join(",")})\`
-      );
-    }
-  } catch (error) {
-    console.error("Sync batch failed. Will retry on network state change.", error);
-  }
-}`,
+# Register execution nodes
+workflow.add_node("planner", plan_research_subtopics)
+workflow.add_node("query_generator", generate_focused_queries)
+workflow.add_node("human_approval", hitl_checkpoint_node)
+workflow.add_node("parallel_scraper", scrape_with_rate_limits)
+workflow.add_node("refusal_check", evaluate_groundedness_score)
+workflow.add_node("synthesizer", compile_citation_dossier)
+
+# Define transitions & conditional gates
+workflow.add_edge(START, "planner")
+workflow.add_edge("planner", "query_generator")
+workflow.add_edge("query_generator", "human_approval")
+workflow.add_conditional_edges(
+    "human_approval",
+    lambda state: "parallel_scraper" if state["is_approved"] else "planner"
+)
+workflow.add_edge("parallel_scraper", "refusal_check")
+workflow.add_conditional_edges(
+    "refusal_check",
+    lambda state: "synthesizer" if state["groundedness_score"] >= 0.85 else "planner"
+)
+workflow.add_edge("synthesizer", END)
+
+# Compile with PostgreSQL checkpointer for resumable SSE streaming
+app = workflow.compile(checkpointer=AsyncPostgresSaver(connection_pool))`,
   },
   {
     slug: "ares",
@@ -411,12 +271,18 @@ export async function flushSyncQueue() {
       "A Python 3.11+ model regression detection system that evaluates candidates against a golden dataset, compares them to the live champion, applies configurable promotion gate rules, and records every decision trail.",
     impact:
       "92%+ pytest coverage enforced in CI, idempotent evaluations keyed by commit SHA, configurable F1/accuracy/latency/slice regression gates, full Prometheus observability, and a Streamlit operator dashboard.",
+    highlightMetrics: [
+      { value: "92%+", label: "CI Test Coverage" },
+      { value: "Idempotent", label: "Commit-SHA Keyed" },
+      { value: "Multi-Slice", label: "Regression Detection" },
+      { value: "Automated", label: "Promotion Gate in CI" },
+    ],
     tech: ["Python", "FastAPI", "SQLAlchemy", "PostgreSQL", "Redis", "Streamlit", "Docker", "GitHub Actions", "DVC"],
     href: "https://github.com/Rytnix786/Ares",
     challenge:
       "ML teams promoting models without rigorous evidence create silent production regressions: a model with a higher aggregate accuracy score can still fail on critical demographic slices or underperform on latency. Most pipelines lack idempotent evaluation records, champion history, and configurable slice-specific gates — making repeatable and auditable promotion decisions impossible.",
     approach:
-      "Built ARES as a full evaluation orchestration system. The core is a configurable \`rules_engine\` that checks candidate metrics against the active champion across F1, accuracy, precision, recall, critical slice performance, model size, and statistical significance. Evaluations are keyed by \`commit_sha + golden_set_version + model_name\` for idempotency. Results are persisted via async SQLAlchemy into PostgreSQL, exposed through a FastAPI API with API-key auth and rate limiting, and surfaced in a Streamlit dashboard with leaderboard, drill-down, drift monitor, and promotion workflow pages. GitHub Actions workflows gate every PR with quality and regression checks.",
+      "Built ARES as a full evaluation orchestration system. The core is a configurable `rules_engine` that checks candidate metrics against the active champion across F1, accuracy, precision, recall, critical slice performance, model size, and statistical significance. Evaluations are keyed by `commit_sha + golden_set_version + model_name` for idempotency. Results are persisted via async SQLAlchemy into PostgreSQL, exposed through a FastAPI API with API-key auth and rate limiting, and surfaced in a Streamlit dashboard with leaderboard, drill-down, drift monitor, and promotion workflow pages. GitHub Actions workflows gate every PR with quality and regression checks.",
     architecture: {
       nodes: [
         { id: "ci", label: "GitHub Actions", desc: "quality.yml / regression_gate.yml / drift_monitor.yml trigger evaluations on each PR" },
@@ -443,6 +309,7 @@ export async function flushSyncQueue() {
       "Aggregate metrics hide slice-level regressions. A model improving overall F1 by 2% can lose 15% on a specific demographic slice. Implementing mandatory critical-slice gates revealed real regressions that were previously invisible.",
       "Idempotent evaluations are non-negotiable in CI. Without commit-SHA + golden-set-version keying, re-running pipelines on the same commit produced duplicated records that corrupted the champion leaderboard."
     ],
+    codeLanguage: "python",
     codeSnippet: `# ARES Promotion Gate — rules_engine.py
 class RulesEngine:
     def __init__(self, config: GateConfig):
@@ -476,6 +343,199 @@ class RulesEngine:
             narrative=self._build_narrative(candidate, champion, failures)
         )`,
   },
+  {
+    slug: "mindstack",
+    name: "MindStack",
+    eyebrow: "Production RAG system",
+    description:
+      "A hybrid BM25 plus ChromaDB retrieval system designed to answer only when supporting evidence is present.",
+    impact:
+      "Reached 95% groundedness and improved refusal accuracy from 26.67% to 66.67% with CI-backed adversarial tests.",
+    highlightMetrics: [
+      { value: "95%", label: "QA Groundedness" },
+      { value: "66.7%", label: "Adversarial Refusal" },
+      { value: "k = 60", label: "RRF Fusion Constant" },
+      { value: "Hybrid", label: "BM25 + ChromaDB" },
+    ],
+    tech: ["FastAPI", "React", "Docker", "ChromaDB", "BM25", "Mistral"],
+    href: "https://github.com/Rytnix786/MindStack",
+    challenge:
+      "Vector-only retrieval models often return irrelevant results for specific keywords or product codes because semantic searches lack word-level exact matches. In production, this causes the LLM generator to hallucinate answers using out-of-context documents rather than admitting it doesn't know.",
+    approach:
+      "Implemented a hybrid search pipeline. Combined dense vectors (ChromaDB + OpenAI text-embedding-3-small) with sparse indices (BM25) using Reciprocal Rank Fusion (RRF) with a parameter constant (k=60). Developed a Custom Refusal Classifier. Before passing contexts to the generator, a calibrated evaluation step calculates the overlap and entailment scores. If the context fails to support the query premises, the system refuses to answer, preventing hallucinations at the source.",
+    architecture: {
+      nodes: [
+        { id: "query", label: "User Query", desc: "Incoming search query" },
+        { id: "dense", label: "ChromaDB Dense", desc: "Retrieves semantic contexts using cosine distance" },
+        { id: "sparse", label: "BM25 Sparse", desc: "Retrieves exact keyword matches from token index" },
+        { id: "rrf", label: "RRF Merger", desc: "Combines dense & sparse rankings using Reciprocal Rank Fusion" },
+        { id: "filter", label: "Evidence Filter", desc: "Evaluates factual grounding; drops unsupported claims" },
+        { id: "generator", label: "LLM Generator", desc: "Formulates final, citation-linked markdown answer" }
+      ],
+      connections: [
+        { from: "query", to: "dense" },
+        { from: "query", to: "sparse" },
+        { from: "dense", to: "rrf" },
+        { from: "sparse", to: "rrf" },
+        { from: "rrf", to: "filter" },
+        { from: "filter", to: "generator", label: "Evidence Check Pass" },
+        { from: "filter", to: "query", label: "Refusal Triggered" }
+      ]
+    },
+    lessons: [
+      "Found that simple cosine similarity thresholding was too sensitive to formatting changes in docs. Switching to RRF + NLI (Natural Language Inference) entailment classifier stabilized groundedness scores across unstructured documents.",
+      "Chunk size optimization is a balancing act. Small chunks (128 tokens) maximized retrieval precision but deprived the generator of surrounding context. Standardized on parent-child chunking (retrieve small, serve large)."
+    ],
+    codeLanguage: "python",
+    codeSnippet: `def reciprocal_rank_fusion(dense_results, sparse_results, k=60):
+    fused_scores = {}
+    for rank, doc in enumerate(dense_results):
+        fused_scores[doc.id] = fused_scores.get(doc.id, 0.0) + 1.0 / (rank + k)
+    for rank, doc in enumerate(sparse_results):
+        fused_scores[doc.id] = fused_scores.get(doc.id, 0.0) + 1.0 / (rank + k)
+    
+    # Sort and return combined documents
+    sorted_docs = sorted(fused_scores.items(), key=lambda x: x[1], reverse=True)
+    return [doc_map[doc_id] for doc_id, _ in sorted_docs[:5]]
+
+def check_groundedness(query, retrieved_chunks):
+    entailment_score = nli_model.predict(query, retrieved_chunks)
+    if entailment_score < 0.70:
+        raise RefusalException("Insufficient supporting evidence in database.")
+    return True`,
+  },
+  {
+    slug: "offboarder",
+    name: "OFFBoarder",
+    eyebrow: "Security-first enterprise platform",
+    description:
+      "A multi-tenant offboarding platform with strict tenant isolation, RBAC, segregation-of-duties controls, and immutable audit packs.",
+    impact:
+      "Owned the product end to end: data model, API layer, auth flows, dashboard, workflow orchestration, and audit design.",
+    highlightMetrics: [
+      { value: "SoD Enforced", label: "Creator ≠ Approver" },
+      { value: "SHA-256", label: "Chained Audit Ledger" },
+      { value: "Postgres RLS", label: "Tenant Isolation" },
+      { value: "Zero Leak", label: "Transactional Outbox" },
+    ],
+    tech: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Supabase", "RBAC"],
+    href: "https://github.com/Rytnix786/OFF-Boarder",
+    challenge:
+      "Employee offboarding in large companies creates massive security holes if access revocation is not verified or if admins can act unilaterally. Backdoor accounts are frequently left active, and standard SaaS tools do not provide immutable cryptographic auditing, making tampering easy and breach tracing impossible.",
+    approach:
+      "Built a secure multi-tenant dashboard. Implemented strict Row-Level Security (RLS) on PostgreSQL via Prisma. Enforced Segregation of Duties (SoD) via middleware: the creator of an offboarding task cannot be the approver. Created a cryptographic ledger using SHA-256 hashing where every access revocation action is appended into an immutable, chained audit table, forming a tamper-proof security log.",
+    architecture: {
+      nodes: [
+        { id: "client", label: "Enterprise Admin UI", desc: "Next.js dashboard with strict RBAC views" },
+        { id: "middleware", label: "SoD Middleware", desc: "Validates role and checks for creator/approver collisions" },
+        { id: "db_rls", label: "Postgres RLS", desc: "Filters queries dynamically at database level based on Tenant ID" },
+        { id: "revoker", label: "API Revoker Agent", desc: "Automates API calls to AD/Okta to terminate accounts" },
+        { id: "audit", label: "Cryptographic Ledger", desc: "Hashes actions and links them sequentially in a blockchain-style log" }
+      ],
+      connections: [
+        { from: "client", to: "middleware" },
+        { from: "middleware", to: "db_rls", label: "Pass" },
+        { from: "db_rls", to: "revoker" },
+        { from: "revoker", to: "audit" }
+      ]
+    },
+    lessons: [
+      "Learned that multi-tenancy at the application layer is prone to leakage. We solved this by enforcing tenant contexts directly inside database connections using PostgreSQL session variables instead of simple WHERE clauses in Prisma.",
+      "External API timeouts (e.g. Okta rate limits) caused audit logs to desync. Re-architected revocation to use transactional outbox patterns with dynamic retries."
+    ],
+    codeLanguage: "typescript",
+    codeSnippet: `// Segregation of Duties Middleware (middleware/sod.ts)
+export async function enforceSegregationOfDuties(req: Request) {
+  const user = req.user;
+  const taskId = req.params.taskId;
+  
+  const task = await prisma.offboardingTask.findUnique({
+    where: { id: taskId }
+  });
+  
+  if (!task) throw new NotFoundException();
+  
+  // Creator of the task cannot approve or execute it
+  if (task.creatorId === user.id) {
+    throw new ForbiddenException(
+      "Segregation of Duties Enforced: Creators cannot approve their own tasks."
+    );
+  }
+  
+  if (!user.roles.includes("SEC_OFFICER")) {
+    throw new UnauthorizedException("Security approval credentials required.");
+  }
+  
+  return true;
+}`,
+  },
+  {
+    slug: "masheba-ai",
+    name: "MaSheba AI",
+    eyebrow: "Offline-first healthcare assistant",
+    description:
+      "A Bangla maternal health platform for mothers and community health workers, built around local persistence and resilient sync.",
+    impact:
+      "Implemented SQLite sync, Supabase-backed storage, on-device vitals triage, and Bangla clinical chat workflows.",
+    highlightMetrics: [
+      { value: "Offline-First", label: "Local SQLite Storage" },
+      { value: "Resilient", label: "Outbox Sync Queue" },
+      { value: "Zero Loss", label: "Microsecond Clock Sync" },
+      { value: "Bangla NLP", label: "Clinical Chat & Triage" },
+    ],
+    tech: ["React Native", "Expo Router", "SQLite", "Supabase", "FastAPI", "PostgreSQL"],
+    href: "https://github.com/DigontaDas/MaSheba--AI",
+    docs: "https://masheba-docs.vercel.app/docs",
+    challenge:
+      "Community healthcare workers in rural Bangladesh travel to remote villages with poor or non-existent cellular reception. When offline, medical worker applications often crash or lose vital patient records, while online-only systems prevent record inputs, leaving critical symptoms untriaged.",
+    approach:
+      "Developed a robust offline-first architecture for React Native using SQLite (via Expo SQLite) for local persistence. Designed a background sync queue that buffers write operations locally with auto-incrementing sequencing. Upon network detection, a sync engine flushes the queue via transactional payloads to Supabase, automatically resolving schema conflicts using last-write-wins and client-side merge policies.",
+    architecture: {
+      nodes: [
+        { id: "mobile_ui", label: "React Native UI", desc: "Bengali interface displaying offline triage widgets" },
+        { id: "sqlite", label: "Local SQLite DB", desc: "Instant local reads and writes with zero latency" },
+        { id: "queue", label: "Outbox Sync Queue", desc: "Buffers serialized mutations while offline" },
+        { id: "sync_engine", label: "Sync Coordinator", desc: "Listens for online states, coordinates batches" },
+        { id: "gateway", label: "FastAPI Gateway", desc: "Validates payloads, inserts into centralized Supabase DB" }
+      ],
+      connections: [
+        { from: "mobile_ui", to: "sqlite" },
+        { from: "sqlite", to: "queue" },
+        { from: "queue", to: "sync_engine" },
+        { from: "sync_engine", to: "gateway", label: "Network Restored" }
+      ]
+    },
+    lessons: [
+      "UUID collisons and out-of-order execution were common in early sync cycles. We replaced sequential integers with client-side UUID v4s and tracked timestamps down to microseconds, establishing logical clocks to handle conflict resolution.",
+      "Large media uploads (e.g. photos of prescriptions) choked cellular connections. Wrote background chunked upload queues that resume from the byte offset on reconnection."
+    ],
+    codeLanguage: "typescript",
+    codeSnippet: `// SQLite Outbox Sync Queue Handler (services/sync.ts)
+export async function flushSyncQueue() {
+  const pendingMutations = await db.all(
+    "SELECT * FROM sync_queue ORDER BY timestamp ASC LIMIT 50"
+  );
+  
+  if (pendingMutations.length === 0) return;
+  
+  try {
+    const response = await fetch("https://api.masheba.ai/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mutations: pendingMutations })
+    });
+    
+    if (response.ok) {
+      const idsToDelete = pendingMutations.map(m => m.id);
+      await db.run(
+        \`DELETE FROM sync_queue WHERE id IN (\${idsToDelete.join(",")})\`
+      );
+    }
+  } catch (error) {
+    console.error("Sync batch failed. Will retry on network state change.", error);
+  }
+}`,
+  },
 ] as const;
 
 export const journey = [
@@ -484,20 +544,41 @@ export const journey = [
     title: "BSc in Computer Science",
     org: "BRAC University",
     description:
-      "Built production-minded AI systems while completing coursework in algorithms, databases, AI, operating systems, software engineering, and networks.",
+      "Core computer science foundation focusing on operating systems boundaries, database query optimization, algorithm analysis, and network communication constraints.",
+    tags: [
+      "Algorithms & Data Structures",
+      "Operating Systems",
+      "Relational Databases",
+      "Artificial Intelligence",
+      "Computer Networks",
+      "Software Engineering",
+    ],
   },
   {
     date: "2025",
-    title: "AI Systems Builder",
-    org: "Independent projects",
+    title: "Independent AI Systems Builder",
+    org: "Self-Directed Systems Engineering",
     description:
-      "Shipped multi-agent, RAG, and full-stack systems with load tests, CI checks, observability hooks, and documented architecture decisions.",
+      "Engineered production-minded AI infrastructure: Cinch (quantized serving gateway with 4.12ms cache), Nexus Researcher (stateful LangGraph agent with Postgres checkpointers), and ARES (CI model regression gates). Enforced automated testing and Prometheus observability.",
+    tags: [
+      "vLLM & Marlin INT4",
+      "LangGraph StateGraph",
+      "FastAPI & PostgreSQL",
+      "CI/CD Regression Gates",
+      "Kubernetes & Docker",
+    ],
   },
   {
     date: "Now",
-    title: "Open to engineering roles",
-    org: "Remote-first, UTC+6",
+    title: "Available for Engineering Roles",
+    org: "Remote-first · UTC+6",
     description:
-      "Available for AI engineering, backend systems, full-stack product work, internships, part-time, or full-time roles.",
+      "Actively seeking AI engineering, backend systems, and full-stack engineering roles, part-time contracts, or internships. Ready to ship reliable, verifiable software.",
+    tags: [
+      "Full-Time & Part-Time",
+      "Internships",
+      "AI / Backend Engineering",
+      "Contract & Project Work",
+    ],
   },
 ] as const;

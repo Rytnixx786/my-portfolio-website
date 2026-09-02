@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen, GitBranch, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { SectionHeading } from "@/components/ui/section-heading";
@@ -13,14 +13,13 @@ const ProjectDrawer = dynamic(
   { ssr: false }
 );
 
-// Reusable 3D Tilt Card component
 function ProjectCard({
   project,
-  isFeatured = false,
+  isTierOne = false,
   onOpenDrawer,
 }: {
   project: (typeof projects)[number];
-  isFeatured?: boolean;
+  isTierOne?: boolean;
   onOpenDrawer: (p: (typeof projects)[number]) => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -33,9 +32,8 @@ function ProjectCard({
     const { left, top, width, height } = cardRef.current.getBoundingClientRect();
     const x = e.clientX - left;
     const y = e.clientY - top;
-    // Map to rotations (-7 to 7 degrees for subtle effect)
-    const rx = -((y - height / 2) / (height / 2)) * 6;
-    const ry = ((x - width / 2) / (width / 2)) * 6;
+    const rx = -((y - height / 2) / (height / 2)) * 5;
+    const ry = ((x - width / 2) / (width / 2)) * 5;
     setRotateX(rx);
     setRotateY(ry);
   };
@@ -46,16 +44,12 @@ function ProjectCard({
     setIsHovered(false);
   };
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-
   return (
     <motion.div
       ref={cardRef}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onMouseEnter={handleMouseEnter}
+      onMouseEnter={() => setIsHovered(true)}
       style={{
         transformStyle: "preserve-3d",
         perspective: 1000,
@@ -63,148 +57,124 @@ function ProjectCard({
       animate={{
         rotateX,
         rotateY,
-        y: isHovered ? -6 : 0,
+        y: isHovered ? -5 : 0,
       }}
-      transition={{ type: "spring", stiffness: 200, damping: 20, mass: 0.2 }}
-      className={`group relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#020c06]/35 p-8 shadow-2xl transition-all duration-300 hover:border-[#10b981]/30 hover:bg-[#020f08]/50 ${
-        isFeatured ? "col-span-1 lg:col-span-2" : "col-span-1"
+      transition={{ type: "spring", stiffness: 220, damping: 22, mass: 0.2 }}
+      className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 ${
+        isTierOne
+          ? "border-primary/25 bg-[#030705]/80 hover:border-primary/45 hover:bg-[#030a06]/90 p-6 sm:p-8 col-span-1 lg:col-span-2 shadow-2xl"
+          : "border-white/10 bg-[#030705]/70 hover:border-white/20 hover:bg-[#030806]/85 p-6 col-span-1 shadow-xl"
       }`}
     >
-      {/* Glow background highlight */}
+      {/* Subtle emerald ambient glow on hover */}
       <div
-        className="absolute -right-20 -top-20 size-48 rounded-full bg-[#10b981]/5 blur-3xl transition duration-500 group-hover:bg-[#10b981]/12"
+        className="absolute -right-16 -top-16 size-48 rounded-full bg-primary/8 blur-3xl transition duration-500 group-hover:bg-primary/14 pointer-events-none"
         style={{ transform: "translateZ(-20px)" }}
       />
 
-      <div className="relative flex flex-col h-full justify-between gap-6" style={{ transform: "translateZ(30px)" }}>
-        <div className={isFeatured ? "grid grid-cols-1 lg:grid-cols-5 gap-8 items-center" : "space-y-4"}>
-          
-          {/* Card Content Details */}
-          <div className={isFeatured ? "lg:col-span-3 space-y-4" : "space-y-3"}>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-semibold tracking-wider text-[#34d399] uppercase">
-                {project.eyebrow}
+      <div className="relative flex flex-col h-full justify-between gap-6" style={{ transform: "translateZ(25px)" }}>
+        <div className="space-y-4">
+          {/* Eyebrow & Badges */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <span className="text-xs font-mono font-medium tracking-wider text-primary uppercase">
+              {project.eyebrow}
+            </span>
+            {isTierOne && (
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono border border-primary/30 bg-primary/10 text-primary tracking-widest uppercase">
+                Tier 1 Flagship
               </span>
-              {isFeatured && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-mono border border-[#10b981]/35 bg-[#10b981]/10 text-[#34d399] tracking-widest uppercase">
-                  Featured Build
-                </span>
-              )}
-            </div>
-            
-            <h3 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight text-white group-hover:text-[#34d399] transition-colors cursor-pointer" onClick={() => onOpenDrawer(project)}>
-              {project.name}
-            </h3>
-            
-            <p className="text-sm sm:text-base leading-relaxed text-slate-300 font-light">
-              {project.description}
-            </p>
-            
-            {/* Impact Metric Bar */}
-            <div className="bg-[#020804]/50 border border-white/5 rounded-xl p-4 mt-2">
-              <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block mb-1">
-                System Impact Metric
-              </span>
-              <p className="text-xs sm:text-sm text-[#34d399] font-mono leading-relaxed font-light">
-                {project.impact}
-              </p>
-            </div>
-
-            {/* Tech chips */}
-            <div className="flex flex-wrap gap-1.5 pt-2">
-              {project.tech.map((tech) => (
-                <span
-                  key={tech}
-                  className="rounded-full border border-[#10b981]/10 bg-[#10b981]/5 px-2.5 py-0.5 text-[10px] font-mono text-[#6ee7b7]"
-                >
-                  {tech}
-                </span>
-              ))}
-            </div>
+            )}
           </div>
 
-          {/* Featured Visual Pipeline Overlay */}
-          {isFeatured && (
-            <div className="lg:col-span-2 hidden lg:block border border-white/5 bg-[#020704]/40 rounded-2xl p-4 relative h-64 overflow-hidden select-none cursor-pointer" onClick={() => onOpenDrawer(project)}>
-              <span className="absolute top-3 left-4 text-[9px] font-mono text-slate-500 uppercase tracking-widest">
-                {project.slug === "cinch" ? "async_serving_pipeline" : "system flow_graph"}
-              </span>
-              
-              <div className="absolute inset-0 flex flex-col justify-center items-center gap-3 p-6 mt-2">
-                <div className="flex items-center gap-2 w-full justify-between">
-                  <div className="text-[10px] font-mono bg-[#10b981]/10 border border-[#10b981]/25 text-[#34d399] px-2 py-1 rounded">
-                    {project.slug === "cinch" ? "Client Ingress :8081" : "User Prompt"}
+          {/* Project Name & Description */}
+          <div className="space-y-2">
+            <h3
+              onClick={() => onOpenDrawer(project)}
+              className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-white group-hover:text-primary transition-colors cursor-pointer"
+            >
+              {project.name}
+            </h3>
+            <p className="text-sm sm:text-base leading-relaxed text-slate-300 font-light text-pretty">
+              {project.description}
+            </p>
+          </div>
+
+          {/* Highlight Metrics Grid (2 or 4 items) */}
+          {"highlightMetrics" in project && project.highlightMetrics && (
+            <div className={`grid gap-2 pt-2 ${isTierOne ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2"}`}>
+              {project.highlightMetrics.map((metric, idx) => (
+                <div
+                  key={idx}
+                  className="rounded-xl border border-white/6 bg-white/[0.02] p-3 text-left space-y-1"
+                >
+                  <div className="font-mono text-base sm:text-lg font-bold text-primary tabular-nums">
+                    {metric.value}
                   </div>
-                  <ArrowRight size={12} className="text-slate-600" />
-                  <div className="text-[10px] font-mono bg-white/5 border border-white/10 text-white px-2 py-1 rounded">
-                    {project.slug === "cinch" ? "Circuit Breaker (45ms)" : "Planner"}
+                  <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider line-clamp-1">
+                    {metric.label}
                   </div>
                 </div>
-
-                <div className="h-6 w-px border-l border-dashed border-[#10b981]/30" />
-
-                <div className="flex items-center gap-2 w-full justify-between">
-                  <div className="text-[10px] font-mono bg-[#10b981]/10 border border-[#10b981]/25 text-[#34d399] px-2 py-1 rounded">
-                    {project.slug === "cinch" ? "Semantic Cache (4.12ms)" : "Parallel Scrapers"}
-                  </div>
-                  <ArrowRight size={12} className="text-[#10b981]" />
-                  <div className="text-[10px] font-mono bg-[#10b981]/20 border border-[#10b981]/40 text-[#6ee7b7] px-2.5 py-1 rounded font-bold">
-                    {project.slug === "cinch" ? "vLLM Marlin INT4" : "Refusal Evaluator"}
-                  </div>
-                </div>
-
-                <div className="h-6 w-px border-l border-dashed border-[#10b981]/30" />
-
-                <div className="flex items-center gap-2 w-full justify-between">
-                  <div className="text-[10px] font-mono bg-white/5 border border-white/10 text-white px-2 py-1 rounded">
-                    {project.slug === "cinch" ? "FinOps Ledger / HPA" : "Grounded Dossier"}
-                  </div>
-                  <ArrowRight size={12} className="text-slate-600" />
-                  <div className="text-[10px] font-mono bg-[#10b981]/10 border border-[#10b981]/25 text-[#34d399] px-2 py-1 rounded">
-                    {project.slug === "cinch" ? "331 tok/s Stream" : "Output Stream"}
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           )}
+
+          {/* Tech stack chips */}
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {project.tech.map((tech) => (
+              <span
+                key={tech}
+                className="rounded-md border border-white/8 bg-white/[0.02] px-2.5 py-0.5 text-[11px] font-mono text-slate-300"
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
         </div>
 
-        {/* CTA Actions */}
-        <div className="flex flex-wrap gap-2.5 pt-4 border-t border-white/5" style={{ transform: "translateZ(10px)" }}>
+        {/* Unambiguous CTA Actions */}
+        <div
+          className="flex flex-wrap items-center gap-2.5 pt-4 border-t border-white/8"
+          style={{ transform: "translateZ(15px)" }}
+        >
+          {/* 1. Read Case Study -> routes to full case study page */}
           <Link
             href={`/work/${project.slug}`}
-            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#10b981] hover:bg-[#34d399] px-5 text-xs font-semibold text-[#020804] transition-colors cursor-pointer"
+            className="inline-flex min-h-[40px] items-center gap-2 rounded-full bg-primary hover:bg-primary/90 px-4 py-2 text-xs font-semibold text-primary-foreground transition-all cursor-pointer shadow-md shadow-primary/10"
           >
-            Read Case Study
-            <ArrowRight size={14} />
+            <span>Read Case Study</span>
+            <ArrowRight size={13} />
           </Link>
 
+          {/* 2. Quick Preview -> opens in-page drawer without navigation */}
           <button
             onClick={() => onOpenDrawer(project)}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 px-4 text-xs font-mono text-slate-300 transition-colors cursor-pointer"
+            className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-primary/40 px-3.5 py-2 text-xs font-mono text-slate-200 transition-colors cursor-pointer"
           >
-            Quick Preview
+            <Eye size={13} className="text-primary" />
+            <span>Quick Preview</span>
           </button>
-          
+
+          {/* 3. GitHub Repo */}
           <a
             href={project.href}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-white/10 hover:border-white/20 bg-white/5 px-4 text-xs font-mono text-slate-400 hover:text-slate-200 transition-colors"
+            className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-white/10 hover:border-white/20 bg-white/5 px-3.5 py-2 text-xs font-mono text-slate-400 hover:text-slate-200 transition-colors"
           >
-            Repo
-            <ArrowUpRight size={12} />
+            <span>Repo</span>
+            <GitBranch size={13} />
           </a>
-          
+
+          {/* 4. Docs link if available */}
           {"docs" in project && project.docs ? (
             <a
               href={project.docs}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-white/10 hover:border-white/20 px-4 text-xs font-mono text-slate-400 hover:text-slate-200 transition-colors"
+              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-white/10 hover:border-white/20 px-3 py-2 text-xs font-mono text-slate-400 hover:text-slate-200 transition-colors"
             >
-              Docs
-              <BookOpen size={12} />
+              <span>Docs</span>
+              <BookOpen size={13} />
             </a>
           ) : null}
         </div>
@@ -214,35 +184,59 @@ function ProjectCard({
 }
 
 export function Projects() {
-  const featuredProject = projects[0];
-  const gridProjects = projects.slice(1);
+  // PRD Phase 4: Tier 1 (Cinch, Nexus Researcher, ARES) vs Tier 2 (MindStack, OFFBoarder, MaSheba AI)
+  const tierOneProjects = projects.slice(0, 3);
+  const tierTwoProjects = projects.slice(3, 6);
   const [selectedProject, setSelectedProject] = useState<(typeof projects)[number] | null>(null);
 
   return (
-    <section id="projects" className="px-4 py-24 sm:px-6 lg:px-8 bg-[#020804] relative">
-      <div className="absolute top-1/2 left-0 w-80 h-80 bg-[#10b981]/5 rounded-full filter blur-[100px] pointer-events-none" />
-      
+    <section id="projects" className="px-4 py-24 sm:px-6 lg:px-8 bg-[#030705] relative">
+      <div className="absolute top-1/3 left-0 w-96 h-96 bg-primary/4 rounded-full filter blur-[120px] pointer-events-none" />
+
       <div className="mx-auto max-w-6xl">
         <SectionHeading
-          eyebrow="Proven Systems"
-          title="Selected builds with real architectures under the hood."
-          description="Click on any card to read its full case study covering problem constraints, architectural tradeoffs, rejected designs, and factual evaluation tests."
+          eyebrow="Selected Work"
+          title="Systems I've actually built."
+          description="Flagship serving engines, multi-agent systems, and model evaluation gates tested with load suites and CI benchmarks."
         />
-        
+
+        {/* Tier 1 Flagship Systems */}
         <div className="mt-12 space-y-6">
-          {/* Featured Full Width */}
           <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-            <ProjectCard project={featuredProject} isFeatured={true} onOpenDrawer={setSelectedProject} />
-            
-            {/* Remainder Grid */}
-            {gridProjects.map((project) => (
-              <ProjectCard key={project.slug} project={project} isFeatured={false} onOpenDrawer={setSelectedProject} />
+            {tierOneProjects.map((project) => (
+              <ProjectCard
+                key={project.slug}
+                project={project}
+                isTierOne={true}
+                onOpenDrawer={setSelectedProject}
+              />
             ))}
+          </div>
+
+          {/* Tier 2 Targeted Systems */}
+          <div className="pt-6">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="text-xs font-mono uppercase tracking-widest text-slate-500">
+                Targeted Systems & Platforms
+              </span>
+              <div className="h-px flex-1 bg-white/5" />
+            </div>
+
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {tierTwoProjects.map((project) => (
+                <ProjectCard
+                  key={project.slug}
+                  project={project}
+                  isTierOne={false}
+                  onOpenDrawer={setSelectedProject}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Slide-over Case Study Drawer */}
+      {/* Accessible Slide-over Quick Preview Drawer */}
       <ProjectDrawer
         project={selectedProject}
         isOpen={!!selectedProject}

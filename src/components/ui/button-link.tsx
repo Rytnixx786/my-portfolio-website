@@ -5,7 +5,7 @@ type ButtonLinkProps = {
   href: string;
   children: ReactNode;
   variant?: "primary" | "secondary" | "ghost";
-  download?: boolean;
+  download?: boolean | string;
   external?: boolean;
   className?: string;
 } & Omit<ComponentPropsWithoutRef<"a">, "href">;
