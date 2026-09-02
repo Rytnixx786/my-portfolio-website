@@ -42,6 +42,15 @@ export function CustomCursor() {
       }
     };
 
+    let isLoopRunning = false;
+
+    const requestRingUpdate = () => {
+      if (!isLoopRunning && isRunning) {
+        isLoopRunning = true;
+        animationFrame = requestAnimationFrame(updateRing);
+      }
+    };
+
     const onMouseMove = (e: MouseEvent) => {
       mouseX = e.clientX;
       mouseY = e.clientY;
@@ -54,6 +63,8 @@ export function CustomCursor() {
         dot.style.opacity = "1";
         ring.style.opacity = "1";
       }
+
+      requestRingUpdate();
     };
 
     const onMouseLeave = () => {
@@ -63,15 +74,20 @@ export function CustomCursor() {
     };
 
     const updateRing = () => {
-      const ease = 0.15;
-      ringX += (mouseX - ringX) * ease;
-      ringY += (mouseY - ringY) * ease;
+      const ease = 0.18;
+      const dx = mouseX - ringX;
+      const dy = mouseY - ringY;
+      ringX += dx * ease;
+      ringY += dy * ease;
 
       ring.style.left = `${ringX}px`;
       ring.style.top = `${ringY}px`;
 
-      if (isRunning) {
+      // Continue animating until settled within sub-pixel distance, then sleep
+      if (isRunning && (Math.abs(dx) > 0.15 || Math.abs(dy) > 0.15)) {
         animationFrame = requestAnimationFrame(updateRing);
+      } else {
+        isLoopRunning = false;
       }
     };
 
@@ -88,10 +104,12 @@ export function CustomCursor() {
     window.addEventListener("mouseover", handleMouseOver, { passive: true });
     document.addEventListener("mouseleave", onMouseLeave, { passive: true });
     
-    animationFrame = requestAnimationFrame(updateRing);
+    // Initial warmup
+    requestRingUpdate();
 
     return () => {
       isRunning = false;
+      isLoopRunning = false;
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseover", handleMouseOver);
       document.removeEventListener("mouseleave", onMouseLeave);

@@ -28,6 +28,20 @@ export const metadata: Metadata = {
   description,
   authors: [{ name: "Mehedi Hasan" }],
   creator: "Mehedi Hasan",
+  alternates: {
+    canonical: siteUrl,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   keywords: [
     "Mehedi Hasan",
     "AI Systems Engineer",
@@ -42,13 +56,14 @@ export const metadata: Metadata = {
     title,
     description,
     type: "website",
+    siteName: "Mehedi Hasan — AI Systems Engineer",
     locale: "en_US",
     images: [
       {
         url: "/assets/mehedi-hasan-profile.jpg",
         width: 957,
         height: 960,
-        alt: "Mehedi Hasan",
+        alt: "Mehedi Hasan — AI Systems Engineer",
       },
     ],
   },
@@ -72,26 +87,45 @@ export const viewport: Viewport = {
 const personSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
-  "name": "Mehedi Hasan",
-  "jobTitle": "AI Systems Engineer",
-  "url": siteUrl,
-  "sameAs": [
+  name: "Mehedi Hasan",
+  jobTitle: "AI Systems Engineer",
+  url: siteUrl,
+  email: "mailto:nafismehedi37@gmail.com",
+  sameAs: [
     "https://github.com/Rytnix786",
     "https://www.linkedin.com/in/mehedi-hasan-llm"
   ],
-  "address": {
+  alumniOf: {
+    "@type": "CollegeOrUniversity",
+    name: "BRAC University",
+    url: "https://www.bracu.ac.bd"
+  },
+  knowsAbout: [
+    "AI Systems Engineering",
+    "RAG Pipelines",
+    "Inference Gateways",
+    "Multi-Agent Orchestration",
+    "Python",
+    "FastAPI",
+    "Next.js",
+    "LangGraph",
+    "vLLM",
+    "Distributed Systems"
+  ],
+  address: {
     "@type": "PostalAddress",
-    "addressLocality": "Dhaka",
-    "addressCountry": "Bangladesh"
+    addressLocality: "Dhaka",
+    addressCountry: "Bangladesh"
   }
 };
 
-const webpageSchema = {
+const profilePageSchema = {
   "@context": "https://schema.org",
-  "@type": "WebPage",
-  "name": "Mehedi Hasan | AI Systems Engineer Portfolio",
-  "description": "Portfolio of Mehedi Hasan, an AI Systems Engineer building production RAG, multi-agent workflows, backend systems, and full-stack AI products.",
-  "url": siteUrl
+  "@type": "ProfilePage",
+  name: "Mehedi Hasan | AI Systems Engineer Portfolio",
+  description: "Portfolio of Mehedi Hasan, an AI Systems Engineer building production RAG, multi-agent workflows, backend systems, and full-stack AI products.",
+  url: siteUrl,
+  mainEntity: personSchema
 };
 
 export default function RootLayout({
@@ -102,6 +136,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${archivo.variable} ${sora.variable} scroll-smooth`} suppressHydrationWarning>
       <head>
+        {/* Preconnect & DNS prefetch for Spline 3D assets to eliminate connection latency */}
+        <link rel="preconnect" href="https://prod.spline.design" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://prod.spline.design" />
+
         {/* Synchronous scroll reset — must run before browser restores scroll position.
             useEffect fires too late; this inline script runs during HTML parsing. */}
         <script
@@ -115,7 +153,7 @@ export default function RootLayout({
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(webpageSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(profilePageSchema) }}
         />
       </head>
       <body className="font-sora antialiased">

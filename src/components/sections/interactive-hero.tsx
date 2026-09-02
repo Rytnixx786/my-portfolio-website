@@ -118,6 +118,7 @@ export function InteractiveHero() {
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [shouldLoadSpline, setShouldLoadSpline] = useState(false);
+  const [splineLoaded, setSplineLoaded] = useState(false);
   const splineContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -140,7 +141,7 @@ export function InteractiveHero() {
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-    // Defer Spline WebGL canvas load until initial paint settles
+    // Trigger Spline download as soon as main thread is idle after first paint
     if ("requestIdleCallback" in window) {
       const idleId = (
         window as unknown as {
@@ -148,9 +149,9 @@ export function InteractiveHero() {
         }
       ).requestIdleCallback(
         () => {
-          timeoutId = globalThis.setTimeout(() => setShouldLoadSpline(true), 800);
+          setShouldLoadSpline(true);
         },
-        { timeout: 1500 }
+        { timeout: 1200 }
       );
       return () => {
         if ("cancelIdleCallback" in window) {
@@ -158,10 +159,9 @@ export function InteractiveHero() {
             idleId
           );
         }
-        if (timeoutId !== undefined) globalThis.clearTimeout(timeoutId);
       };
     } else {
-      timeoutId = globalThis.setTimeout(() => setShouldLoadSpline(true), 1000);
+      timeoutId = globalThis.setTimeout(() => setShouldLoadSpline(true), 300);
       return () => {
         if (timeoutId !== undefined) globalThis.clearTimeout(timeoutId);
       };
@@ -224,21 +224,34 @@ export function InteractiveHero() {
       id="top"
       className="relative min-h-screen flex items-end bg-[#030705] overflow-hidden"
     >
-      {/* 1. Spline 3D Interactive Background Scene (Preserved) */}
-      <div ref={splineContainerRef} className="absolute inset-0 pointer-events-auto">
-        {shouldLoadSpline ? (
+      {/* 1. Spline 3D Interactive Background Scene (Preserved with strict layout containment & onLoad crossfade) */}
+      <div
+        ref={splineContainerRef}
+        className={`absolute inset-0 transition-opacity duration-1000 ${
+          splineLoaded ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        style={{ contain: "strict", willChange: "transform" }}
+      >
+        {shouldLoadSpline && (
           <Spline
             scene="https://prod.spline.design/Slk6b8kz3LRlKiyk/scene.splinecode"
+            onLoad={() => setSplineLoaded(true)}
             className="w-full h-full"
           />
-        ) : (
-          <div className="absolute inset-0 bg-[#030705]">
-            <div
-              className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,255,0,0.12),transparent_60%)] animate-pulse"
-              style={{ animationDuration: "6s" }}
-            />
-          </div>
         )}
+      </div>
+
+      {/* Ambient fallback that gracefully crossfades once 3D shaders are compiled */}
+      <div
+        className={`absolute inset-0 bg-[#030705] transition-opacity duration-1000 ${
+          splineLoaded ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}
+        aria-hidden="true"
+      >
+        <div
+          className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,255,0,0.12),transparent_60%)] animate-pulse"
+          style={{ animationDuration: "6s" }}
+        />
       </div>
 
       {/* 2. Soft Gradient Scrim for Flawless Text Legibility over 3D Cubes */}
