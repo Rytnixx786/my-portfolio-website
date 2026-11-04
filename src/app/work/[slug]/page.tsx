@@ -10,12 +10,6 @@ interface PageProps {
 const siteUrl = "https://mehedi-hasan-llm.vercel.app";
 
 // Statically pre-render all 6 project case study pages at build time
-export function generateStaticParams() {
-  return projects.map((project) => ({
-    slug: project.slug,
-  }));
-}
-
 // Generate project-specific SEO title, description, canonical, and social cards
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
