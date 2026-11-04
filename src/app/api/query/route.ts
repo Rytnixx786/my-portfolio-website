@@ -228,7 +228,7 @@ Mehedi Hasan's Profile:
 - Name: Mehedi Hasan
 - Role: AI Systems Engineer (CS undergraduate at BRAC University, Dhaka, Bangladesh, UTC+6)
 - Contact Email: nafismehedi37@gmail.com
-- GitHub: https://github.com/Rytnix786
+- GitHub: https://github.com/Rytnixx786
 - LinkedIn: https://www.linkedin.com/in/mehedi-hasan-llm
 - Resume: /assets/Mehedi_Hasan_Resume_Main.docx
 - Headline: "I build AI systems that stay useful when the demo ends and reality starts."
@@ -244,22 +244,22 @@ Operational Metrics:
 Key Projects:
 1. Cinch (Self-hosted LLM serving platform & async gateway control plane)
    - Tech: Python 3.12, FastAPI, vLLM, AWQ Marlin, Kubernetes (k3d), Docker, Prometheus, OpenTelemetry, ONNX, Next.js.
-   - Repo: https://github.com/Rytnix786/Cinch
+   - Repo: https://github.com/Rytnixx786/Cinch
    - Impact: 10.86x throughput speedup (331 tok/s), 4.12ms semantic cache hits (0W GPU), 45ms circuit breaker fast-fail, 195 verified tests, and 2-to-6 replica HPA autoscaling.
    - Details: 14-stage asynchronous gateway around Marlin W4A16 AWQ quantized vLLM backends, sub-5ms in-process CPU ONNX semantic cache (cosine similarity >= 0.92), 3-state circuit breaker FSM, sliding-window rate limiter, EBNF grammar constraints with AST repair, closed-loop sandboxed tool executor, and per-tenant micro-dollar FinOps cost accounting.
 2. Nexus Researcher (Stateful multi-agent research)
    - Tech: LangGraph, FastAPI, PostgreSQL, SSE, Redis, Next.js.
-   - Repo: https://github.com/Rytnix786/Nexus
+   - Repo: https://github.com/Rytnixx786/Nexus
    - Impact: Sustained 8.05 req/s under load, 91% refusal accuracy on adversarial queries, 122 tests.
    - Details: 8-node stateful workflow with parallel scraping, vector retrieval, refusal check, planner, and synthesizer.
 3. MindStack (Production RAG system)
    - Tech: FastAPI, React, Docker, ChromaDB, BM25, Mistral.
-   - Repo: https://github.com/Rytnix786/MindStack
+   - Repo: https://github.com/Rytnixx786/MindStack
    - Impact: 95% groundedness, refusal accuracy improved from 26.67% to 66.67%.
    - Details: Hybrid retrieval (dense ChromaDB + sparse BM25) with reciprocal rank fusion (RRF) and custom NLI validation.
 4. OFFBoarder (Security-first enterprise platform)
    - Tech: Next.js, TypeScript, PostgreSQL, Prisma, Supabase.
-   - Repo: https://github.com/Rytnix786/OFF-Boarder
+   - Repo: https://github.com/Rytnixx786/OFF-Boarder
    - Impact: Multi-tenant database RLS, auth flows, segregation-of-duties controls, and immutable audit logs.
 5. MaSheba AI (Offline-first production mobile healthcare assistant)
    - Tech: React Native, Expo, SQLite, Supabase, FastAPI.
@@ -267,7 +267,7 @@ Key Projects:
    - Impact: Full production mobile app with offline SQLite outbox sync queue, vital-signs triage, Bangla clinical chat, and background chunked upload queues. Demonstrates Mehedi's ability to ship production mobile apps for real-world, low-connectivity environments.
 6. ARES (ML Model Regression Detection & Promotion Gate System)
    - Tech: Python 3.11+, FastAPI, SQLAlchemy, PostgreSQL, Redis, Streamlit, Docker, GitHub Actions, DVC, Prometheus.
-   - Repo: https://github.com/Rytnix786/Ares
+   - Repo: https://github.com/Rytnixx786/Ares
    - Impact: 92%+ pytest coverage enforced in CI, idempotent evaluation records keyed by commit SHA + golden set version, configurable promotion gates for F1/accuracy/latency/critical-slices, full Prometheus observability at /metrics, Streamlit operator dashboard with leaderboard and drift monitor.
    - Details: Evaluates candidate ML models against a golden dataset and the active champion model. Applies configurable regression gate rules (metric deltas, critical slice F1 floors, latency budgets, statistical significance). Every evaluation is idempotent and auditable. GitHub Actions CI gates PRs with quality and regression checks. FastAPI exposes the results with API-key auth and webhooks.
 

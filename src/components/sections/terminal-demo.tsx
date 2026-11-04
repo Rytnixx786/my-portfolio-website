@@ -189,7 +189,7 @@ export function TerminalDemo() {
         { text: "  Core Focus   : AI Systems Engineering · Inference Gateways · Multi-Agent Workflows", type: "output" },
         { text: "  Location     : Dhaka, Bangladesh (UTC+6) · Remote-first", type: "output" },
         { text: "  Availability : Open to AI Engineering, Backend, & Full-Stack roles (Full-time / Part-time / Internships)", type: "success" },
-        { text: "  Contact      : nafismehedi37@gmail.com · https://github.com/Rytnix786", type: "output" },
+        { text: "  Contact      : nafismehedi37@gmail.com · https://github.com/Rytnixx786", type: "output" },
       ];
     } else {
       // Freeform query sent to /api/query

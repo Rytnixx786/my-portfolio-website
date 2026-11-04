@@ -3,7 +3,7 @@ export const profile = {
   role: "AI Systems Engineer",
   location: "Dhaka, Bangladesh",
   email: "nafismehedi37@gmail.com",
-  github: "https://github.com/Rytnix786",
+  github: "https://github.com/Rytnixx786",
   linkedin: "https://www.linkedin.com/in/mehedi-hasan-llm",
   resume: "/assets/Mehedi_Hasan_Resume_Main.docx",
   portrait: "/assets/mehedi-hasan-profile.jpg",
@@ -89,7 +89,7 @@ export const projects = [
       { value: "45ms", label: "Circuit Fast-Fail" },
     ],
     tech: ["Python", "FastAPI", "vLLM", "AWQ Marlin", "Kubernetes", "k3d", "Docker", "Prometheus", "OpenTelemetry", "ONNX", "Next.js"],
-    href: "https://github.com/Rytnix786/Cinch",
+    href: "https://github.com/Rytnixx786/Cinch",
     challenge:
       "Serving LLMs in multi-tenant self-hosted environments creates severe operational challenges: raw vLLM workers lack security guardrails, budget allocation, and circuit breaking. Worker crashes cause 30-second TCP timeouts that cascade across microservices, while redundant prompt paraphrases repeatedly burn GPU cycles. Moreover, small models require strict EBNF JSON grammar enforcement to prevent broken downstream tool executions.",
     approach:
@@ -191,7 +191,7 @@ class CircuitBreaker:
       { value: "8 Nodes", label: "LangGraph Flow" },
     ],
     tech: ["LangGraph", "FastAPI", "PostgreSQL", "SSE", "Redis", "Next.js"],
-    href: "https://github.com/Rytnix786/Nexus",
+    href: "https://github.com/Rytnixx786/Nexus",
     challenge: 
       "Automated research systems often fail in production because they operate in a single shot. If the LLM enters a bad search query or encounters a broken link, the entire run fails. Furthermore, fully automated agents consume excessive tokens crawling irrelevant content and risk hallucinating synthesis summaries when web sources contain conflicting or sparse evidence.",
     approach: 
@@ -278,7 +278,7 @@ app = workflow.compile(checkpointer=AsyncPostgresSaver(connection_pool))`,
       { value: "Automated", label: "Promotion Gate in CI" },
     ],
     tech: ["Python", "FastAPI", "SQLAlchemy", "PostgreSQL", "Redis", "Streamlit", "Docker", "GitHub Actions", "DVC"],
-    href: "https://github.com/Rytnix786/Ares",
+    href: "https://github.com/Rytnixx786/Ares",
     challenge:
       "ML teams promoting models without rigorous evidence create silent production regressions: a model with a higher aggregate accuracy score can still fail on critical demographic slices or underperform on latency. Most pipelines lack idempotent evaluation records, champion history, and configurable slice-specific gates — making repeatable and auditable promotion decisions impossible.",
     approach:
@@ -358,7 +358,7 @@ class RulesEngine:
       { value: "Hybrid", label: "BM25 + ChromaDB" },
     ],
     tech: ["FastAPI", "React", "Docker", "ChromaDB", "BM25", "Mistral"],
-    href: "https://github.com/Rytnix786/MindStack",
+    href: "https://github.com/Rytnixx786/MindStack",
     challenge:
       "Vector-only retrieval models often return irrelevant results for specific keywords or product codes because semantic searches lack word-level exact matches. In production, this causes the LLM generator to hallucinate answers using out-of-context documents rather than admitting it doesn't know.",
     approach:
@@ -419,7 +419,7 @@ def check_groundedness(query, retrieved_chunks):
       { value: "Zero Leak", label: "Transactional Outbox" },
     ],
     tech: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Supabase", "RBAC"],
-    href: "https://github.com/Rytnix786/OFF-Boarder",
+    href: "https://github.com/Rytnixx786/OFF-Boarder",
     challenge:
       "Employee offboarding in large companies creates massive security holes if access revocation is not verified or if admins can act unilaterally. Backdoor accounts are frequently left active, and standard SaaS tools do not provide immutable cryptographic auditing, making tampering easy and breach tracing impossible.",
     approach:

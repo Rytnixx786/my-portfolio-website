@@ -92,7 +92,7 @@ const personSchema = {
   url: siteUrl,
   email: "mailto:nafismehedi37@gmail.com",
   sameAs: [
-    "https://github.com/Rytnix786",
+    "https://github.com/Rytnixx786",
     "https://www.linkedin.com/in/mehedi-hasan-llm"
   ],
   alumniOf: {
